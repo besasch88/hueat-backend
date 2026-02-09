@@ -21,6 +21,7 @@ ORDER BY takings DESC;
 const getAverageTableDurationQuery = `
 SELECT (EXTRACT(EPOCH FROM AVG(t.updated_at - t.created_at)) * 1e9)::bigint as avg_duration
 FROM ceng_table as t
+WHERE t.inside = TRUE
 GROUP BY t."close"
 HAVING t."close" is TRUE;
 `
