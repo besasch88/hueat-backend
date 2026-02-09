@@ -1,7 +1,7 @@
 package statistics
 
 const getPaymentMethodsTakinsQuery = `
-SELECT t.payment_method as payment_method, SUM(i.price) + SUM(o.price) as takings
+SELECT t.payment_method as payment_method, SUM(COALESCE(o.price, i.price)) as takings
 FROM ceng_course_selection AS s
 INNER JOIN ceng_course AS c
 ON s.course_id = c.id
