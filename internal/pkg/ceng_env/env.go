@@ -26,6 +26,7 @@ type Envs struct {
 	AppPort                          int
 	AppMode                          string
 	AppCorsOrigin                    string
+	PrinterEnabled                   bool
 	SearchRelevanceThreshold         float64
 	PubSubPersistEventsOnDb          bool
 	PubSubPersistEventsRetentionDays int
@@ -51,6 +52,7 @@ func ReadEnvs() *Envs {
 		DbLogSlowQueryThreshold:          getMandatoryIntValue("DB_LOG_SLOW_QUERY_THRESHOLD"),
 		AppPort:                          getMandatoryIntValue("APP_PORT"),
 		AppMode:                          getMandatoryStringValue("APP_MODE"),
+		PrinterEnabled:                   getMandatoryBooleanValue("PRINTER_ENABLED"),
 		AppCorsOrigin:                    getMandatoryStringValue("APP_CORS_ORIGIN"),
 		SearchRelevanceThreshold:         getMandatoryFloatValue("SEARCH_RELEVANCE_THRESHOLD"),
 		PubSubPersistEventsOnDb:          getMandatoryBooleanValue("PUBSUB_PERSIST_EVENTS_ON_DB"),

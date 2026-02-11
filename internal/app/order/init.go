@@ -23,7 +23,7 @@ func Init(envs *ceng_env.Envs, dbStorage *gorm.DB, pubSubAgent *ceng_pubsub.PubS
 	repository = newOrderRepository(envs.SearchRelevanceThreshold)
 	printRepository = newPrintRepository()
 	service = newOrderService(dbStorage, pubSubAgent, repository)
-	printService = newPrintService(dbStorage, pubSubAgent, repository, printRepository)
+	printService = newPrintService(envs.PrinterEnabled, dbStorage, pubSubAgent, repository, printRepository)
 	consumer = newOrderConsumer(pubSubAgent, service)
 	consumer.subscribe()
 	router = newOrderRouter(service, printService)

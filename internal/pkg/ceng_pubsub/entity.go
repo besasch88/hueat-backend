@@ -18,20 +18,23 @@ type PrinterEventEntity struct {
 	Title     string    `json:"title"`
 	Url       string    `json:"url"`
 	Active    *bool     `json:"active"`
+	Inside    *bool     `json:"inside"`
+	Outside   *bool     `json:"outside"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type MenuCategoryEventEntity struct {
-	ID        uuid.UUID  `json:"id"`
-	Title     string     `json:"title"`
-	Position  int64      `json:"position"`
-	Active    *bool      `json:"active"`
-	Inside    *bool      `json:"inside"`
-	Outside   *bool      `json:"outside"`
-	PrinterID *uuid.UUID `json:"printerId"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
+	ID               uuid.UUID  `json:"id"`
+	Title            string     `json:"title"`
+	Position         int64      `json:"position"`
+	Active           *bool      `json:"active"`
+	Inside           *bool      `json:"inside"`
+	Outside          *bool      `json:"outside"`
+	PrinterInsideID  *uuid.UUID `json:"printerInsideId"`
+	PrinterOutsideID *uuid.UUID `json:"printerOutsideId"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
 }
 
 type MenuItemEventEntity struct {

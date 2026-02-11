@@ -28,10 +28,12 @@ func (r getPrinterInputDto) validate() error {
 }
 
 type updatePrinterInputDto struct {
-	ID     string  `uri:"printerId"`
-	Title  *string `json:"title"`
-	Url    *string `json:"url"`
-	Active *bool   `json:"active"`
+	ID      string  `uri:"printerId"`
+	Title   *string `json:"title"`
+	Url     *string `json:"url"`
+	Active  *bool   `json:"active"`
+	Inside  *bool   `json:"inside"`
+	Outside *bool   `json:"outside"`
 }
 
 func (r updatePrinterInputDto) validate() error {
@@ -40,6 +42,8 @@ func (r updatePrinterInputDto) validate() error {
 		validation.Field(&r.Title, validation.NilOrNotEmpty, validation.Length(1, 255)),
 		validation.Field(&r.Url, validation.NilOrNotEmpty, validation.Length(1, 255)),
 		validation.Field(&r.Active, validation.In(true, false)),
+		validation.Field(&r.Inside, validation.In(true, false)),
+		validation.Field(&r.Outside, validation.In(true, false)),
 	)
 }
 

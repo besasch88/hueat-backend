@@ -61,6 +61,8 @@ func (s printerService) createPrinter(ctx *gin.Context, input createPrinterInput
 		Title:     input.Title,
 		Url:       input.Url,
 		Active:    ceng_utils.BoolPtr(false),
+		Inside:    ceng_utils.BoolPtr(true),
+		Outside:   ceng_utils.BoolPtr(true),
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -84,6 +86,8 @@ func (s printerService) createPrinter(ctx *gin.Context, input createPrinterInput
 					Title:     newPrinter.Title,
 					Url:       newPrinter.Url,
 					Active:    newPrinter.Active,
+					Inside:    newPrinter.Inside,
+					Outside:   newPrinter.Outside,
 					CreatedAt: newPrinter.CreatedAt,
 					UpdatedAt: newPrinter.UpdatedAt,
 				},
@@ -133,6 +137,12 @@ func (s printerService) updatePrinter(ctx *gin.Context, input updatePrinterInput
 		if input.Active != nil {
 			updatedPrinter.Active = input.Active
 		}
+		if input.Inside != nil {
+			updatedPrinter.Inside = input.Inside
+		}
+		if input.Outside != nil {
+			updatedPrinter.Outside = input.Outside
+		}
 		if input.Url != nil {
 			updatedPrinter.Url = *input.Url
 		}
@@ -151,6 +161,8 @@ func (s printerService) updatePrinter(ctx *gin.Context, input updatePrinterInput
 					Title:     updatedPrinter.Title,
 					Url:       updatedPrinter.Url,
 					Active:    updatedPrinter.Active,
+					Inside:    updatedPrinter.Inside,
+					Outside:   updatedPrinter.Outside,
 					CreatedAt: updatedPrinter.CreatedAt,
 					UpdatedAt: updatedPrinter.UpdatedAt,
 				},
@@ -197,6 +209,8 @@ func (s printerService) deletePrinter(ctx *gin.Context, input deletePrinterInput
 					Title:     currentPrinter.Title,
 					Url:       currentPrinter.Url,
 					Active:    currentPrinter.Active,
+					Inside:    currentPrinter.Inside,
+					Outside:   currentPrinter.Outside,
 					CreatedAt: currentPrinter.CreatedAt,
 					UpdatedAt: currentPrinter.UpdatedAt,
 				},

@@ -56,8 +56,16 @@ func (s menuCategoryService) getMenuCategoryByID(ctx *gin.Context, input getMenu
 }
 
 func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMenuCategoryInputDto) (menuCategoryEntity, error) {
-	if input.PrinterID != nil {
-		printerId := uuid.MustParse(*input.PrinterID)
+	if input.PrinterInsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterInsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuCategoryEntity{}, ceng_err.ErrGeneric
+		} else if !exists {
+			return menuCategoryEntity{}, errPrinterNotFound
+		}
+	}
+	if input.PrinterOutsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterOutsideID)
 		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
 			return menuCategoryEntity{}, ceng_err.ErrGeneric
 		} else if !exists {
@@ -67,15 +75,16 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 	now := time.Now()
 	maxValue := int64(math.MaxInt64)
 	newMenuCategory := menuCategoryEntity{
-		ID:        uuid.New(),
-		Title:     input.Title,
-		Position:  maxValue,
-		Active:    ceng_utils.BoolPtr(false),
-		Inside:    ceng_utils.BoolPtr(true),
-		Outside:   ceng_utils.BoolPtr(true),
-		PrinterID: ceng_utils.GetOptionalUUIDFromString(input.PrinterID),
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:               uuid.New(),
+		Title:            input.Title,
+		Position:         maxValue,
+		Active:           ceng_utils.BoolPtr(false),
+		Inside:           ceng_utils.BoolPtr(true),
+		Outside:          ceng_utils.BoolPtr(true),
+		PrinterInsideID:  ceng_utils.GetOptionalUUIDFromString(input.PrinterInsideID),
+		PrinterOutsideID: ceng_utils.GetOptionalUUIDFromString(input.PrinterOutsideID),
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 	eventsToPublish := []ceng_pubsub.EventToPublish{}
 	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
@@ -98,15 +107,16 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 				EventTime: time.Now(),
 				EventType: ceng_pubsub.MenuCategoryCreatedEvent,
 				EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
-					ID:        newMenuCategory.ID,
-					Title:     newMenuCategory.Title,
-					Position:  newMenuCategory.Position,
-					Active:    newMenuCategory.Active,
-					Inside:    newMenuCategory.Inside,
-					Outside:   newMenuCategory.Outside,
-					PrinterID: newMenuCategory.PrinterID,
-					CreatedAt: newMenuCategory.CreatedAt,
-					UpdatedAt: newMenuCategory.UpdatedAt,
+					ID:               newMenuCategory.ID,
+					Title:            newMenuCategory.Title,
+					Position:         newMenuCategory.Position,
+					Active:           newMenuCategory.Active,
+					Inside:           newMenuCategory.Inside,
+					Outside:          newMenuCategory.Outside,
+					PrinterInsideID:  newMenuCategory.PrinterInsideID,
+					PrinterOutsideID: newMenuCategory.PrinterOutsideID,
+					CreatedAt:        newMenuCategory.CreatedAt,
+					UpdatedAt:        newMenuCategory.UpdatedAt,
 				},
 				EventChangedFields: ceng_utils.DiffStructs(menuCategoryEntity{}, newMenuCategory),
 			},
@@ -126,15 +136,16 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 					EventTime: time.Now(),
 					EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
 					EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
-						ID:        updatedEntity.ID,
-						Title:     updatedEntity.Title,
-						Position:  updatedEntity.Position,
-						Active:    updatedEntity.Active,
-						Inside:    updatedEntity.Inside,
-						Outside:   updatedEntity.Outside,
-						PrinterID: updatedEntity.PrinterID,
-						CreatedAt: updatedEntity.CreatedAt,
-						UpdatedAt: updatedEntity.UpdatedAt,
+						ID:               updatedEntity.ID,
+						Title:            updatedEntity.Title,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},
@@ -155,6 +166,22 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 }
 
 func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMenuCategoryInputDto) (menuCategoryEntity, error) {
+	if input.PrinterInsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterInsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuCategoryEntity{}, ceng_err.ErrGeneric
+		} else if !exists {
+			return menuCategoryEntity{}, errPrinterNotFound
+		}
+	}
+	if input.PrinterOutsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterOutsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuCategoryEntity{}, ceng_err.ErrGeneric
+		} else if !exists {
+			return menuCategoryEntity{}, errPrinterNotFound
+		}
+	}
 	now := time.Now()
 	var updatedMenuCategory menuCategoryEntity
 	eventsToPublish := []ceng_pubsub.EventToPublish{}
@@ -190,6 +217,12 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 		if input.Outside != nil {
 			updatedMenuCategory.Outside = input.Outside
 		}
+		if input.PrinterInsideID != nil {
+			updatedMenuCategory.PrinterInsideID = ceng_utils.GetOptionalUUIDFromString(input.PrinterInsideID)
+		}
+		if input.PrinterOutsideID != nil {
+			updatedMenuCategory.PrinterOutsideID = ceng_utils.GetOptionalUUIDFromString(input.PrinterOutsideID)
+		}
 		if input.Position != nil {
 			// If the step is moving in a lower position (e.g. from 10 to 3),
 			// we need to move it one step more, so that, the algorith to re-sort all steps correctly
@@ -215,15 +248,16 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 				EventTime: time.Now(),
 				EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
 				EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
-					ID:        updatedMenuCategory.ID,
-					Title:     updatedMenuCategory.Title,
-					Position:  updatedMenuCategory.Position,
-					Active:    updatedMenuCategory.Active,
-					Inside:    updatedMenuCategory.Inside,
-					Outside:   updatedMenuCategory.Outside,
-					PrinterID: updatedMenuCategory.PrinterID,
-					CreatedAt: updatedMenuCategory.CreatedAt,
-					UpdatedAt: updatedMenuCategory.UpdatedAt,
+					ID:               updatedMenuCategory.ID,
+					Title:            updatedMenuCategory.Title,
+					Position:         updatedMenuCategory.Position,
+					Active:           updatedMenuCategory.Active,
+					Inside:           updatedMenuCategory.Inside,
+					Outside:          updatedMenuCategory.Outside,
+					PrinterInsideID:  updatedMenuCategory.PrinterInsideID,
+					PrinterOutsideID: updatedMenuCategory.PrinterOutsideID,
+					CreatedAt:        updatedMenuCategory.CreatedAt,
+					UpdatedAt:        updatedMenuCategory.UpdatedAt,
 				},
 				EventChangedFields: ceng_utils.DiffStructs(currentMenuCategory, updatedMenuCategory),
 			},
@@ -243,15 +277,16 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 					EventTime: time.Now(),
 					EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
 					EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
-						ID:        updatedEntity.ID,
-						Title:     updatedEntity.Title,
-						Position:  updatedEntity.Position,
-						Active:    updatedEntity.Active,
-						Inside:    updatedEntity.Inside,
-						Outside:   updatedEntity.Outside,
-						PrinterID: updatedEntity.PrinterID,
-						CreatedAt: updatedEntity.CreatedAt,
-						UpdatedAt: updatedEntity.UpdatedAt,
+						ID:               updatedEntity.ID,
+						Title:            updatedEntity.Title,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},
@@ -298,15 +333,16 @@ func (s menuCategoryService) deleteMenuCategory(ctx *gin.Context, input deleteMe
 				EventTime: time.Now(),
 				EventType: ceng_pubsub.MenuCategoryDeletedEvent,
 				EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
-					ID:        currentMenuCategory.ID,
-					Title:     currentMenuCategory.Title,
-					Position:  currentMenuCategory.Position,
-					Active:    currentMenuCategory.Active,
-					Inside:    currentMenuCategory.Inside,
-					Outside:   currentMenuCategory.Outside,
-					PrinterID: currentMenuCategory.PrinterID,
-					CreatedAt: currentMenuCategory.CreatedAt,
-					UpdatedAt: currentMenuCategory.UpdatedAt,
+					ID:               currentMenuCategory.ID,
+					Title:            currentMenuCategory.Title,
+					Position:         currentMenuCategory.Position,
+					Active:           currentMenuCategory.Active,
+					Inside:           currentMenuCategory.Inside,
+					Outside:          currentMenuCategory.Outside,
+					PrinterInsideID:  currentMenuCategory.PrinterInsideID,
+					PrinterOutsideID: currentMenuCategory.PrinterOutsideID,
+					CreatedAt:        currentMenuCategory.CreatedAt,
+					UpdatedAt:        currentMenuCategory.UpdatedAt,
 				},
 				EventChangedFields: ceng_utils.DiffStructs(currentMenuCategory, menuCategoryEntity{}),
 			},
@@ -323,15 +359,16 @@ func (s menuCategoryService) deleteMenuCategory(ctx *gin.Context, input deleteMe
 					EventTime: time.Now(),
 					EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
 					EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
-						ID:        updatedEntity.ID,
-						Title:     updatedEntity.Title,
-						Position:  updatedEntity.Position,
-						Active:    updatedEntity.Active,
-						Inside:    updatedEntity.Inside,
-						Outside:   updatedEntity.Outside,
-						PrinterID: updatedEntity.PrinterID,
-						CreatedAt: updatedEntity.CreatedAt,
-						UpdatedAt: updatedEntity.UpdatedAt,
+						ID:               updatedEntity.ID,
+						Title:            updatedEntity.Title,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},

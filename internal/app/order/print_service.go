@@ -16,14 +16,16 @@ type printServiceInterface interface {
 }
 
 type printService struct {
+	printerEnabled  bool
 	storage         *gorm.DB
 	pubSubAgent     *ceng_pubsub.PubSubAgent
 	repository      orderRepositoryInterface
 	printRepository printRepositoryInterface
 }
 
-func newPrintService(storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAgent, repository orderRepositoryInterface, printRepository printRepositoryInterface) printServiceInterface {
+func newPrintService(printerEnabled bool, storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAgent, repository orderRepositoryInterface, printRepository printRepositoryInterface) printServiceInterface {
 	return printService{
+		printerEnabled:  printerEnabled,
 		storage:         storage,
 		pubSubAgent:     pubSubAgent,
 		repository:      repository,
@@ -52,6 +54,9 @@ func (s printService) printOrder(tableId uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+	if !s.printerEnabled {
+		return nil
+	}
 	return s.printItems(items)
 }
 
@@ -59,6 +64,9 @@ func (s printService) printCourse(tableId uuid.UUID, courseId uuid.UUID) error {
 	items, err := s.repository.getOrderDetailByTableIDAndCourseID(s.storage, tableId, courseId)
 	if err != nil {
 		return err
+	}
+	if !s.printerEnabled {
+		return nil
 	}
 	return s.printItems(items)
 }
@@ -69,6 +77,9 @@ func (s printService) printBill(tableId uuid.UUID) error {
 		return err
 	}
 	if len(items) == 0 {
+		return nil
+	}
+	if !s.printerEnabled {
 		return nil
 	}
 	conn, err := net.Dial("tcp", items[0].PrinterURL)
@@ -129,6 +140,9 @@ func (s printService) printPayment(tableId uuid.UUID) error {
 	if ceng_utils.IsEmpty(item) {
 		return nil
 	}
+	if !s.printerEnabled {
+		return nil
+	}
 	conn, err := net.Dial("tcp", item.PrinterURL)
 	if err != nil {
 		return err
@@ -166,7 +180,10 @@ func (s printService) printItems(items []orderDetailEntity) error {
 		if item.PrinterTitle != lastPrinterTitle {
 			// if the printer is changing, send the print and cut and close the previous connection
 			if printer != nil {
-				s.printRepository.printAndCut(printer)
+				err = s.printRepository.printAndCut(printer)
+				if err != nil {
+					return err
+				}
 			}
 			if conn != nil {
 				conn.Close()

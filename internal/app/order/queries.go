@@ -22,7 +22,10 @@ JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
 JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON p.id = mc.printer_id
+JOIN ceng_printer p ON  (
+    (t.inside = TRUE AND p.id = mc.printer_inside_id)
+    OR (t.inside = FALSE AND p.id = mc.printer_outside_id)
+)
 LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND p.active = true
@@ -56,7 +59,10 @@ JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
 JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON p.id = mc.printer_id
+JOIN ceng_printer p ON  (
+    (t.inside = TRUE AND p.id = mc.printer_inside_id)
+    OR (t.inside = FALSE AND p.id = mc.printer_outside_id)
+)
 LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND c.id = $2
@@ -75,7 +81,7 @@ SELECT
     t.name AS table_name,
     t.created_at AS table_created_at,
     p.id AS printer_id,
-    'PRECONTO' AS printer_title,
+    p.title AS printer_title,
     p.url AS printer_url,
     MIN(c.id) AS course_id,
     0 AS course_number, 
@@ -91,9 +97,9 @@ JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
 JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON (
-    (t.inside = TRUE  AND p.title = 'PRECONTO')
-    OR (t.inside = FALSE AND p.title = 'PRECONTO_ASPORTO')
+JOIN ceng_printer p ON p.title = 'PRECONTO' AND (
+    (t.inside = TRUE  AND p.inside = TRUE)
+    OR (t.inside = FALSE AND p.outside = TRUE)
 )
 LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
@@ -124,7 +130,7 @@ SELECT
     t.created_at AS table_created_at,
     t.payment_method as table_payment,
     p.id AS printer_id,
-    'PAGAMENTO' AS printer_title,
+    p.title AS printer_title,
     p.url AS printer_url,
     SUM(cs.quantity * COALESCE(mo.price, mi.price)) AS price_total
 FROM ceng_order o
@@ -134,9 +140,9 @@ JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
 JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON (
-    (t.inside = TRUE  AND p.title = 'PAGAMENTO')
-    OR (t.inside = FALSE AND p.title = 'PAGAMENTO_ASPORTO')
+JOIN ceng_printer p ON p.title = 'PAGAMENTO' AND (
+    (t.inside = TRUE  AND p.inside = TRUE)
+    OR (t.inside = FALSE AND p.outside = TRUE)
 )
 LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1

@@ -1,0 +1,5 @@
+ALTER TABLE "ceng_printer"
+ADD COLUMN "inside" BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN "outside" BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE "ceng_printer" DROP CONSTRAINT "idx_ceng_printer_title";
