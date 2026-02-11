@@ -83,7 +83,7 @@ func (s printService) printBill(tableId uuid.UUID) error {
 	if err := s.printRepository.printPrinterName(printer, items[0].PrinterTitle); err != nil {
 		return err
 	}
-	if err := s.printRepository.printTableCreation(printer, items[0].TableCreatedAt); err != nil {
+	if err := s.printRepository.printTableCreation(printer, items[0].Username, items[0].TableCreatedAt); err != nil {
 		return err
 	}
 	if err := s.printRepository.printLine(printer); err != nil {
@@ -141,7 +141,7 @@ func (s printService) printPayment(tableId uuid.UUID) error {
 	if err := s.printRepository.printPrinterName(printer, item.PrinterTitle); err != nil {
 		return err
 	}
-	if err := s.printRepository.printTableCreation(printer, item.TableCreatedAt); err != nil {
+	if err := s.printRepository.printTableCreation(printer, item.Username, item.TableCreatedAt); err != nil {
 		return err
 	}
 	if err := s.printRepository.printLine(printer); err != nil {
@@ -185,7 +185,7 @@ func (s printService) printItems(items []orderDetailEntity) error {
 			if err := s.printRepository.printPrinterName(printer, item.PrinterTitle); err != nil {
 				return err
 			}
-			if err := s.printRepository.printTableCreation(printer, item.TableCreatedAt); err != nil {
+			if err := s.printRepository.printTableCreation(printer, item.Username, item.TableCreatedAt); err != nil {
 				return err
 			}
 		}

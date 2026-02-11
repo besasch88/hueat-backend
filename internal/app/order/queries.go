@@ -2,6 +2,7 @@ package order
 
 const getOrderByTableQuery = `
 SELECT
+    u.username AS username,
     t.name AS table_name,
     t.created_at AS table_created_at,
     p.id AS printer_id,
@@ -16,6 +17,7 @@ SELECT
     cs.quantity
 FROM ceng_order o
 JOIN ceng_table t ON o.table_id = t.id
+JOIN ceng_user u ON t.user_id = u.id
 JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
@@ -34,6 +36,7 @@ ORDER BY
 
 const getCourseByTableAndCourseQuery = `
 SELECT
+    u.username AS username,
     t.name AS table_name,
     t.created_at AS table_created_at,
     p.id AS printer_id,
@@ -48,6 +51,7 @@ SELECT
     cs.quantity
 FROM ceng_order o
 JOIN ceng_table t ON o.table_id = t.id
+JOIN ceng_user u ON t.user_id = u.id
 JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
@@ -67,6 +71,7 @@ ORDER BY
 
 const getPricedOrderByTableQuery = `
 SELECT
+    u.username AS username,
     t.name AS table_name,
     t.created_at AS table_created_at,
     p.id AS printer_id,
@@ -81,6 +86,7 @@ SELECT
     SUM(cs.quantity) AS quantity
 FROM ceng_order o
 JOIN ceng_table t ON o.table_id = t.id
+JOIN ceng_user u ON t.user_id = u.id
 JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
@@ -92,6 +98,7 @@ JOIN ceng_printer p ON (
 LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 GROUP BY
+    u.username,
     t.name,
     t.created_at,
     p.id,
@@ -112,6 +119,7 @@ ORDER BY
 
 const getTotalPriceAndPaymentByTableQuery = `
 SELECT
+    u.username AS username,
     t.name AS table_name,
     t.created_at AS table_created_at,
     t.payment_method as table_payment,
@@ -121,6 +129,7 @@ SELECT
     SUM(cs.quantity * COALESCE(mo.price, mi.price)) AS price_total
 FROM ceng_order o
 JOIN ceng_table t ON o.table_id = t.id
+JOIN ceng_user u ON t.user_id = u.id
 JOIN ceng_course c ON c.order_id = o.id
 JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
@@ -133,6 +142,7 @@ LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND p.active = true
 GROUP BY
+    u.username,
     t.name,
     t.created_at,
     t.payment_method,

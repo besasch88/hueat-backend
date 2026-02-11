@@ -64,6 +64,7 @@ func (m courseSelectionModel) toEntity() courseSelectionEntity {
 }
 
 type orderDetailModel struct {
+	Username        string    `gorm:"column:username"`
 	TableName       string    `gorm:"column:table_name"`
 	TableCreatedAt  time.Time `gorm:"column:table_created_at"`
 	PrinterId       string    `gorm:"column:printer_id"`
@@ -83,6 +84,7 @@ func (m orderDetailModel) toEntity() orderDetailEntity {
 }
 
 type paymentDetailModel struct {
+	Username       string    `gorm:"column:username"`
 	TableName      string    `gorm:"column:table_name"`
 	TableCreatedAt time.Time `gorm:"column:table_created_at"`
 	TablePayment   string    `gorm:"column:table_payment"`

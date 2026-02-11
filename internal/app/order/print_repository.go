@@ -13,7 +13,7 @@ import (
 type printRepositoryInterface interface {
 	printTable(printer *escpos.Escpos, name string) error
 	printPrinterName(printer *escpos.Escpos, name string) error
-	printTableCreation(printer *escpos.Escpos, date time.Time) error
+	printTableCreation(printer *escpos.Escpos, username string, date time.Time) error
 	printCourse(printer *escpos.Escpos, number int64) error
 	printLine(printer *escpos.Escpos) error
 	printItem(printer *escpos.Escpos, quantity int64, name string) error
@@ -45,7 +45,7 @@ func (r printRepository) printPrinterName(printer *escpos.Escpos, name string) e
 	return nil
 }
 
-func (r printRepository) printTableCreation(printer *escpos.Escpos, date time.Time) error {
+func (r printRepository) printTableCreation(printer *escpos.Escpos, username string, date time.Time) error {
 	// Convert date in Rome Timezone
 	location, err := time.LoadLocation("Europe/Rome")
 	if err != nil {
@@ -53,7 +53,7 @@ func (r printRepository) printTableCreation(printer *escpos.Escpos, date time.Ti
 	}
 	date = date.In(location)
 	// Print text
-	text := fmt.Sprintf("Creato il %s\n", date.Format("02/01/2006 15:04"))
+	text := fmt.Sprintf("%s - %s\n", strings.ToUpper(username), date.Format("02/01/2006 15:04"))
 	if _, err := printer.Bold(false).Reverse(false).Size(1, 1).Justify(escpos.JustifyCenter).Write(text); err != nil {
 		return err
 	}

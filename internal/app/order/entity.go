@@ -21,6 +21,7 @@ type orderEntityWithChilds struct {
 }
 
 type orderDetailEntity struct {
+	Username        string
 	TableName       string
 	TableCreatedAt  time.Time
 	PrinterId       string
@@ -36,6 +37,7 @@ type orderDetailEntity struct {
 }
 
 type paymentDetailEntity struct {
+	Username       string
 	TableName      string
 	TableCreatedAt time.Time
 	TablePayment   string
