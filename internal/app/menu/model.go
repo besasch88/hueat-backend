@@ -20,7 +20,7 @@ type menuCategoryModel struct {
 }
 
 func (m menuCategoryModel) TableName() string {
-	return "ceng_menu_category"
+	return "hueat_menu_category"
 }
 
 func (m menuCategoryModel) toEntity() menuCategoryEntity {
@@ -41,7 +41,7 @@ type menuItemModel struct {
 }
 
 func (m menuItemModel) TableName() string {
-	return "ceng_menu_item"
+	return "hueat_menu_item"
 }
 
 func (m menuItemModel) toEntity() menuItemEntity {
@@ -62,7 +62,7 @@ type menuOptionModel struct {
 }
 
 func (m menuOptionModel) TableName() string {
-	return "ceng_menu_option"
+	return "hueat_menu_option"
 }
 
 func (m menuOptionModel) toEntity() menuOptionEntity {

@@ -1,3 +1,3 @@
-ALTER TABLE "ceng_user" DROP CONSTRAINT "idx_ceng_user_username";
+ALTER TABLE "hueat_user" DROP CONSTRAINT "idx_hueat_user_username";
 
-DROP TABLE IF EXISTS "ceng_user";
+DROP TABLE IF EXISTS "hueat_user";

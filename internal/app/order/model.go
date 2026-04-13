@@ -11,7 +11,7 @@ type tableModel struct {
 }
 
 func (m tableModel) TableName() string {
-	return "ceng_table"
+	return "hueat_table"
 }
 
 type orderModel struct {
@@ -22,7 +22,7 @@ type orderModel struct {
 }
 
 func (m orderModel) TableName() string {
-	return "ceng_order"
+	return "hueat_order"
 }
 
 func (m orderModel) toEntity() orderEntity {
@@ -38,7 +38,7 @@ type courseModel struct {
 }
 
 func (m courseModel) TableName() string {
-	return "ceng_course"
+	return "hueat_course"
 }
 
 func (m courseModel) toEntity() courseEntity {
@@ -56,7 +56,7 @@ type courseSelectionModel struct {
 }
 
 func (m courseSelectionModel) TableName() string {
-	return "ceng_course_selection"
+	return "hueat_course_selection"
 }
 
 func (m courseSelectionModel) toEntity() courseSelectionEntity {

@@ -1,4 +1,4 @@
-ALTER TABLE "ceng_menu_category" DROP CONSTRAINT "idx_ceng_menu_category_title";
-ALTER TABLE "ceng_menu_category" DROP CONSTRAINT "fk_ceng_menu_category_printer";
+ALTER TABLE "hueat_menu_category" DROP CONSTRAINT "idx_hueat_menu_category_title";
+ALTER TABLE "hueat_menu_category" DROP CONSTRAINT "fk_hueat_menu_category_printer";
 
-DROP TABLE IF EXISTS "ceng_menu_category";
+DROP TABLE IF EXISTS "hueat_menu_category";

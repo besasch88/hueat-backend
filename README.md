@@ -1,4 +1,7 @@
-# Casari Eat 'n Go
+# Hueat
+
+## 📋 About
+Hueat is a point-of-sale system that helps huts take orders and manage them more smoothly. Waiters can take orders directly at tables on their devices, and orders get sent to the right places: the kitchen, bar, or serving area. It helps reduce mistakes, saves time, and makes service faster. The system also tracks what's being ordered and used, helping with inventory management.
 
 ### Install GO
 
@@ -24,7 +27,7 @@ Navigate in the `build` folder and start the Postgres DB and Redis inside Docker
 
 ```sh
 cd build
-docker compose up ceng-database  -d
+docker compose up hueat-database  -d
 ```
 
 It contains a PostgresQL database server mapped on the local port `54322`. Feel free to take a look to the docker-compose file to retrieve credentials if you want to use an external tool to connect with.
@@ -47,7 +50,7 @@ Thanks to it, the tool will create two empty sql files in the `scripts/migration
 Once your migrations are defined, you can apply them locally with this command:
 
 ```sh
-migrate -path "./scripts/migrations" -database "postgres://casari-eat-n-go:iUkcBQj2o_PpfX*uaXx7@127.0.0.1:54322/casari-eat-n-go?sslmode=disable" up
+migrate -path "./scripts/migrations" -database "postgres://hueat:iUkcBQj2o_PpfX*uaXx7@127.0.0.1:54322/hueat?sslmode=disable" up
 ```
 
 or just update the DB credentials in the file and run it as a shortcut:
@@ -112,3 +115,7 @@ go run ./cmd/cli/cli.go create-user --username pippo --password pluto
 ## 📄 License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).
+
+## 🫶 Support Us
+
+If you find this project useful, please consider supporting us.

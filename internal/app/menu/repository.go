@@ -3,7 +3,7 @@ package menu
 import (
 	"fmt"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -42,7 +42,7 @@ func (r menuRepository) listMenuCategories(tx *gorm.DB, target string, forUpdate
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s", "position", ceng_db.Asc)
+	order = fmt.Sprintf("%s %s", "position", hueat_db.Asc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 
@@ -75,7 +75,7 @@ func (r menuRepository) listMenuItems(tx *gorm.DB, target string, forUpdate bool
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s", "position", ceng_db.Asc)
+	order = fmt.Sprintf("%s %s", "position", hueat_db.Asc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 
@@ -108,7 +108,7 @@ func (r menuRepository) listMenuOptions(tx *gorm.DB, target string, forUpdate bo
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s", "position", ceng_db.Asc)
+	order = fmt.Sprintf("%s %s", "position", hueat_db.Asc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 

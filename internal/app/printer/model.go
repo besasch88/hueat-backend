@@ -18,7 +18,7 @@ type printerModel struct {
 }
 
 func (m printerModel) TableName() string {
-	return "ceng_printer"
+	return "hueat_printer"
 }
 
 func (m printerModel) toEntity() printerEntity {

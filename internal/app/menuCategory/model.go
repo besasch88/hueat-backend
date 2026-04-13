@@ -20,7 +20,7 @@ type menuCategoryModel struct {
 }
 
 func (m menuCategoryModel) TableName() string {
-	return "ceng_menu_category"
+	return "hueat_menu_category"
 }
 
 func (m menuCategoryModel) toEntity() menuCategoryEntity {
@@ -32,5 +32,5 @@ type printerModel struct {
 }
 
 func (m printerModel) TableName() string {
-	return "ceng_printer"
+	return "hueat_printer"
 }

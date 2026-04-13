@@ -11,7 +11,7 @@ type menuItemModel struct {
 }
 
 func (m menuItemModel) TableName() string {
-	return "ceng_menu_item"
+	return "hueat_menu_item"
 }
 
 type menuOptionModel struct {
@@ -28,7 +28,7 @@ type menuOptionModel struct {
 }
 
 func (m menuOptionModel) TableName() string {
-	return "ceng_menu_option"
+	return "hueat_menu_option"
 }
 
 func (m menuOptionModel) toEntity() menuOptionEntity {

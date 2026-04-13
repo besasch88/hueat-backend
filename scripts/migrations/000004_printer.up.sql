@@ -1,4 +1,4 @@
-CREATE TABLE "ceng_printer" (
+CREATE TABLE "hueat_printer" (
     "id" VARCHAR(36) PRIMARY KEY NOT NULL,
     "title" VARCHAR(255) NOT NULL,
     "url" VARCHAR(255) NOT NULL,
@@ -7,4 +7,4 @@ CREATE TABLE "ceng_printer" (
     "updated_at" TIMESTAMP NOT NULL
 );
 
-ALTER TABLE "ceng_printer" ADD CONSTRAINT "idx_ceng_printer_title" UNIQUE ("title");
+ALTER TABLE "hueat_printer" ADD CONSTRAINT "idx_hueat_printer_title" UNIQUE ("title");

@@ -1,7 +1,7 @@
 package healthCheck
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_env"
+	"github.com/hueat/backend/internal/pkg/hueat_env"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -10,7 +10,7 @@ import (
 /*
 Init the module by registering new APIs
 */
-func Init(envs *ceng_env.Envs, dbStorage *gorm.DB, routerGroup *gin.RouterGroup) {
+func Init(envs *hueat_env.Envs, dbStorage *gorm.DB, routerGroup *gin.RouterGroup) {
 	zap.L().Info("Initialize Health Check package...")
 	var repository healthCheckRepositoryInterface
 	var service healthCheckServiceInterface

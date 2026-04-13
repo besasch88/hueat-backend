@@ -1,14 +1,14 @@
 package auth
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type authRepositoryInterface interface {
 	getAuthSessionEntityByRefreshToken(tx *gorm.DB, refreshToken string, forUpdate bool) (authSessionEntity, error)
-	saveAuthSessionEntity(tx *gorm.DB, entity authSessionEntity, operation ceng_db.SaveOperation) (authSessionEntity, error)
+	saveAuthSessionEntity(tx *gorm.DB, entity authSessionEntity, operation hueat_db.SaveOperation) (authSessionEntity, error)
 	deleteAuthSessionEntity(tx *gorm.DB, entity authSessionEntity) error
 	cleanUpExpiredRefreshToken(tx *gorm.DB) error
 }
@@ -37,15 +37,15 @@ func (r authRepository) getAuthSessionEntityByRefreshToken(tx *gorm.DB, refreshT
 	return model.toEntity(), nil
 }
 
-func (r authRepository) saveAuthSessionEntity(tx *gorm.DB, entity authSessionEntity, operation ceng_db.SaveOperation) (authSessionEntity, error) {
+func (r authRepository) saveAuthSessionEntity(tx *gorm.DB, entity authSessionEntity, operation hueat_db.SaveOperation) (authSessionEntity, error) {
 	var model = authSessionModel(entity)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {

@@ -3,12 +3,12 @@ package order
 import (
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
-type orderEntity ceng_pubsub.OrderEventEntity
-type courseEntity ceng_pubsub.CourseEventEntity
-type courseSelectionEntity ceng_pubsub.CourseSelectionEventEntity
+type orderEntity hueat_pubsub.OrderEventEntity
+type courseEntity hueat_pubsub.CourseEventEntity
+type courseSelectionEntity hueat_pubsub.CourseSelectionEventEntity
 
 type courseEntityWithChilds struct {
 	courseEntity

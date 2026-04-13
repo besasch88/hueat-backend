@@ -1,5 +1,5 @@
-ALTER TABLE "ceng_printer"
+ALTER TABLE "hueat_printer"
 ADD COLUMN "inside" BOOLEAN NOT NULL DEFAULT TRUE,
 ADD COLUMN "outside" BOOLEAN NOT NULL DEFAULT TRUE;
 
-ALTER TABLE "ceng_printer" DROP CONSTRAINT "idx_ceng_printer_title";
+ALTER TABLE "hueat_printer" DROP CONSTRAINT "idx_hueat_printer_title";

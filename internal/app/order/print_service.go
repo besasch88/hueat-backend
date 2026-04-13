@@ -3,8 +3,8 @@ package order
 import (
 	"net"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_utils"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/justinmichaelvieira/escpos"
@@ -18,12 +18,12 @@ type printServiceInterface interface {
 type printService struct {
 	printerEnabled  bool
 	storage         *gorm.DB
-	pubSubAgent     *ceng_pubsub.PubSubAgent
+	pubSubAgent     *hueat_pubsub.PubSubAgent
 	repository      orderRepositoryInterface
 	printRepository printRepositoryInterface
 }
 
-func newPrintService(printerEnabled bool, storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAgent, repository orderRepositoryInterface, printRepository printRepositoryInterface) printServiceInterface {
+func newPrintService(printerEnabled bool, storage *gorm.DB, pubSubAgent *hueat_pubsub.PubSubAgent, repository orderRepositoryInterface, printRepository printRepositoryInterface) printServiceInterface {
 	return printService{
 		printerEnabled:  printerEnabled,
 		storage:         storage,
@@ -137,7 +137,7 @@ func (s printService) printPayment(tableId uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	if ceng_utils.IsEmpty(item) {
+	if hueat_utils.IsEmpty(item) {
 		return nil
 	}
 	if !s.printerEnabled {

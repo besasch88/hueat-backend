@@ -3,7 +3,7 @@ package printer
 import (
 	"fmt"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,7 +13,7 @@ type printerRepositoryInterface interface {
 	listPrinters(tx *gorm.DB, forUpdate bool) ([]printerEntity, int64, error)
 	getPrinterByID(tx *gorm.DB, printerID uuid.UUID, forUpdate bool) (printerEntity, error)
 	getPrinterByTitle(tx *gorm.DB, printerTitle string, forUpdate bool) (printerEntity, error)
-	savePrinter(tx *gorm.DB, printer printerEntity, operation ceng_db.SaveOperation) (printerEntity, error)
+	savePrinter(tx *gorm.DB, printer printerEntity, operation hueat_db.SaveOperation) (printerEntity, error)
 	deletePrinter(tx *gorm.DB, printer printerEntity) (printerEntity, error)
 }
 
@@ -37,7 +37,7 @@ func (r printerRepository) listPrinters(tx *gorm.DB, forUpdate bool) ([]printerE
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s", "created_at", ceng_db.Asc)
+	order = fmt.Sprintf("%s %s", "created_at", hueat_db.Asc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 
@@ -84,15 +84,15 @@ func (r printerRepository) getPrinterByTitle(tx *gorm.DB, printerTitle string, f
 	return model.toEntity(), nil
 }
 
-func (r printerRepository) savePrinter(tx *gorm.DB, printer printerEntity, operation ceng_db.SaveOperation) (printerEntity, error) {
+func (r printerRepository) savePrinter(tx *gorm.DB, printer printerEntity, operation hueat_db.SaveOperation) (printerEntity, error) {
 	var model = printerModel(printer)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {

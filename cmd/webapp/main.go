@@ -10,24 +10,24 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/app/auth"
-	"github.com/casari-eat-n-go/backend/internal/app/healthCheck"
-	"github.com/casari-eat-n-go/backend/internal/app/menu"
-	"github.com/casari-eat-n-go/backend/internal/app/menuCategory"
-	"github.com/casari-eat-n-go/backend/internal/app/menuItem"
-	"github.com/casari-eat-n-go/backend/internal/app/menuOption"
-	"github.com/casari-eat-n-go/backend/internal/app/order"
-	"github.com/casari-eat-n-go/backend/internal/app/printer"
-	"github.com/casari-eat-n-go/backend/internal/app/statistics"
-	"github.com/casari-eat-n-go/backend/internal/app/table"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_auth"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_cors"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_env"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_log"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_router"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_scheduler"
+	"github.com/hueat/backend/internal/app/auth"
+	"github.com/hueat/backend/internal/app/healthCheck"
+	"github.com/hueat/backend/internal/app/menu"
+	"github.com/hueat/backend/internal/app/menuCategory"
+	"github.com/hueat/backend/internal/app/menuItem"
+	"github.com/hueat/backend/internal/app/menuOption"
+	"github.com/hueat/backend/internal/app/order"
+	"github.com/hueat/backend/internal/app/printer"
+	"github.com/hueat/backend/internal/app/statistics"
+	"github.com/hueat/backend/internal/app/table"
+	"github.com/hueat/backend/internal/pkg/hueat_auth"
+	"github.com/hueat/backend/internal/pkg/hueat_cors"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
+	"github.com/hueat/backend/internal/pkg/hueat_env"
+	"github.com/hueat/backend/internal/pkg/hueat_log"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_router"
+	"github.com/hueat/backend/internal/pkg/hueat_scheduler"
 	ginzap "github.com/gin-contrib/zap"
 	"go.uber.org/zap"
 
@@ -44,12 +44,12 @@ func main() {
 	// Set default Timezone
 	os.Setenv("TZ", "UTC")
 	// ENV Variables
-	envs := ceng_env.ReadEnvs()
+	envs := hueat_env.ReadEnvs()
 	// Set Logger
-	logger := ceng_log.NewLogger(envs.AppMode)
+	logger := hueat_log.NewLogger(envs.AppMode)
 	zap.ReplaceGlobals(logger)
 	// DB Connection
-	dbConnection := ceng_db.NewDatabaseConnection(
+	dbConnection := hueat_db.NewDatabaseConnection(
 		envs.DbHost,
 		envs.DbUsername,
 		envs.DbPassword,
@@ -60,9 +60,9 @@ func main() {
 		envs.AppMode,
 	)
 	// Scheduler
-	scheduler := ceng_scheduler.NewScheduler()
+	scheduler := hueat_scheduler.NewScheduler()
 	// PUB-SUB agent
-	pubSubAgent := ceng_pubsub.NewPubSubAgent(dbConnection, scheduler, envs.PubSubPersistEventsOnDb, envs.PubSubPersistEventsRetentionDays, envs.PubSubSyncMode)
+	pubSubAgent := hueat_pubsub.NewPubSubAgent(dbConnection, scheduler, envs.PubSubPersistEventsOnDb, envs.PubSubPersistEventsRetentionDays, envs.PubSubSyncMode)
 
 	// Start Server
 	zap.L().Info("Starting HTTP Server...", zap.String("service", "webapp"))
@@ -75,18 +75,18 @@ func main() {
 	// Cors Middleware
 	allowOrigins := []string{envs.AppCorsOrigin}
 	if envs.AppMode != "release" {
-		allowOrigins = append(allowOrigins, ceng_cors.LocalhostOrigin)
+		allowOrigins = append(allowOrigins, hueat_cors.LocalhostOrigin)
 	}
-	r.Use(ceng_cors.CorsMiddleware(allowOrigins))
+	r.Use(hueat_cors.CorsMiddleware(allowOrigins))
 
 	// Init Authentication middleware
-	authConfig := ceng_auth.AuthConfig{
+	authConfig := hueat_auth.AuthConfig{
 		JwtSecret: envs.AuthJwtSecret,
 	}
-	ceng_auth.InitAuthMiddleware(authConfig)
+	hueat_auth.InitAuthMiddleware(authConfig)
 
 	r.NoRoute(func(ctx *gin.Context) {
-		ceng_router.ReturnNotFoundError(ctx, errors.New("endpoint-not-found"))
+		hueat_router.ReturnNotFoundError(ctx, errors.New("endpoint-not-found"))
 	})
 
 	// Init moduels that will start exposing endpoints and consumers of internal events
@@ -135,7 +135,7 @@ func main() {
 	zap.L().Info("Shutdown Server in 3 seconds...", zap.String("service", "webapp"))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	ceng_db.CloseDatabaseConnection(dbConnection)
+	hueat_db.CloseDatabaseConnection(dbConnection)
 	scheduler.Close()
 	pubSubAgent.Close()
 	defer cancel()

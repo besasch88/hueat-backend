@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_env"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_scheduler"
+	"github.com/hueat/backend/internal/pkg/hueat_env"
+	"github.com/hueat/backend/internal/pkg/hueat_scheduler"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -11,7 +11,7 @@ import (
 /*
 Init the module by registering new APIs
 */
-func Init(envs *ceng_env.Envs, dbStorage *gorm.DB, cron *ceng_scheduler.Scheduler, routerGroup *gin.RouterGroup) {
+func Init(envs *hueat_env.Envs, dbStorage *gorm.DB, cron *hueat_scheduler.Scheduler, routerGroup *gin.RouterGroup) {
 	zap.L().Info("Initialize Auth package...")
 	var repository authRepositoryInterface
 	var userRepository authUserRepositoryInterface

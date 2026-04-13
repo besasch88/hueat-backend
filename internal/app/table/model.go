@@ -18,7 +18,7 @@ type tableModel struct {
 }
 
 func (m tableModel) TableName() string {
-	return "ceng_table"
+	return "hueat_table"
 }
 
 func (m tableModel) toEntity() tableEntity {

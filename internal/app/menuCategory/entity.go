@@ -1,7 +1,7 @@
 package menuCategory
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
-type menuCategoryEntity ceng_pubsub.MenuCategoryEventEntity
+type menuCategoryEntity hueat_pubsub.MenuCategoryEventEntity

@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "ceng_table";
+DROP TABLE IF EXISTS "hueat_table";

@@ -1,24 +1,24 @@
 services:
-  ceng-database:
+  hueat-database:
     image: postgres:18.1-alpine
     restart: unless-stopped
     ports:
       - 54322:5432
     volumes:
-      - ./volumes/ceng-database:/var/lib/postgresql
+      - ./volumes/hueat-database:/var/lib/postgresql
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-casari-eat-n-go}
+      POSTGRES_USER: ${POSTGRES_USER:-hueat}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iUkcBQj2o_PpfX*uaXx7}
-      POSTGRES_DB: ${POSTGRES_DB:-casari-eat-n-go}
+      POSTGRES_DB: ${POSTGRES_DB:-hueat}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-casari-eat-n-go}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hueat}"]
       interval: 5s
       timeout: 5s
       retries: 20
     networks:
       - backend-network
 
-  ceng-migrate:
+  hueat-migrate:
     build:
       context: ../
       dockerfile: ./build/docker-migrate
@@ -26,19 +26,19 @@ services:
     image: backend-migrate
     restart: no
     depends_on:
-      ceng-database:
+      hueat-database:
         condition: service_healthy
     environment:
-      DB_HOST: ${DB_HOST:-ceng-database}
+      DB_HOST: ${DB_HOST:-hueat-database}
       DB_PORT: ${DB_PORT:-5432}
-      DB_USERNAME: ${DB_USERNAME:-casari-eat-n-go}
+      DB_USERNAME: ${DB_USERNAME:-hueat}
       DB_PASSWORD: ${DB_PASSWORD:-iUkcBQj2o_PpfX*uaXx7}
-      DB_NAME: ${DB_NAME:-casari-eat-n-go}
+      DB_NAME: ${DB_NAME:-hueat}
       DB_SSL_MODE: ${DB_SSL_MODE:-disable}
     networks:
       - backend-network
 
-  ceng-webapp:
+  hueat-webapp:
     build:
       context: ../
       dockerfile: build/docker-webapp
@@ -48,14 +48,14 @@ services:
     ports:
       - 8001:8001
     depends_on:
-      ceng-database:
+      hueat-database:
         condition: service_healthy
     environment:
-      DB_HOST: ${DB_HOST:-ceng-database}
+      DB_HOST: ${DB_HOST:-hueat-database}
       DB_PORT: ${DB_PORT:-5432}
-      DB_USERNAME: ${DB_USERNAME:-casari-eat-n-go}
+      DB_USERNAME: ${DB_USERNAME:-hueat}
       DB_PASSWORD: ${DB_PASSWORD:-iUkcBQj2o_PpfX*uaXx7}
-      DB_NAME: ${DB_NAME:-casari-eat-n-go}
+      DB_NAME: ${DB_NAME:-hueat}
       DB_SSL_MODE: ${DB_SSL_MODE:-disable}
       DB_LOG_SLOW_QUERY_THRESHOLD: ${DB_LOG_SLOW_QUERY_THRESHOLD:-1}
       APP_PORT: ${APP_PORT:-8001}
@@ -78,7 +78,7 @@ services:
     networks:
       - backend-network
 
-  ceng-cli:
+  hueat-cli:
     build:
       context: ../
       dockerfile: build/docker-cli
@@ -86,14 +86,14 @@ services:
     image: backend-cli
     restart: no
     depends_on:
-      ceng-webapp:
+      hueat-webapp:
         condition: service_healthy
     environment:
-      DB_HOST: ${DB_HOST:-ceng-database}
+      DB_HOST: ${DB_HOST:-hueat-database}
       DB_PORT: ${DB_PORT:-5432}
-      DB_USERNAME: ${DB_USERNAME:-casari-eat-n-go}
+      DB_USERNAME: ${DB_USERNAME:-hueat}
       DB_PASSWORD: ${DB_PASSWORD:-iUkcBQj2o_PpfX*uaXx7}
-      DB_NAME: ${DB_NAME:-casari-eat-n-go}
+      DB_NAME: ${DB_NAME:-hueat}
       DB_SSL_MODE: ${DB_SSL_MODE:-disable}
       DB_LOG_SLOW_QUERY_THRESHOLD: ${DB_LOG_SLOW_QUERY_THRESHOLD:-1}
       APP_PORT: ${APP_PORT:-8001}

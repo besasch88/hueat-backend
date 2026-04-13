@@ -1,7 +1,7 @@
 package table
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
-type tableEntity ceng_pubsub.TableEventEntity
+type tableEntity hueat_pubsub.TableEventEntity

@@ -4,22 +4,22 @@ import (
 	"os"
 	"time"
 
-	"github.com/casari-eat-n-go/backend/cmd/cli/commands"
-	"github.com/casari-eat-n-go/backend/internal/app/auth"
-	"github.com/casari-eat-n-go/backend/internal/app/healthCheck"
-	"github.com/casari-eat-n-go/backend/internal/app/menu"
-	"github.com/casari-eat-n-go/backend/internal/app/menuCategory"
-	"github.com/casari-eat-n-go/backend/internal/app/menuItem"
-	"github.com/casari-eat-n-go/backend/internal/app/menuOption"
-	"github.com/casari-eat-n-go/backend/internal/app/order"
-	"github.com/casari-eat-n-go/backend/internal/app/printer"
-	"github.com/casari-eat-n-go/backend/internal/app/statistics"
-	"github.com/casari-eat-n-go/backend/internal/app/table"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_env"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_log"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_scheduler"
+	"github.com/hueat/backend/cmd/cli/commands"
+	"github.com/hueat/backend/internal/app/auth"
+	"github.com/hueat/backend/internal/app/healthCheck"
+	"github.com/hueat/backend/internal/app/menu"
+	"github.com/hueat/backend/internal/app/menuCategory"
+	"github.com/hueat/backend/internal/app/menuItem"
+	"github.com/hueat/backend/internal/app/menuOption"
+	"github.com/hueat/backend/internal/app/order"
+	"github.com/hueat/backend/internal/app/printer"
+	"github.com/hueat/backend/internal/app/statistics"
+	"github.com/hueat/backend/internal/app/table"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
+	"github.com/hueat/backend/internal/pkg/hueat_env"
+	"github.com/hueat/backend/internal/pkg/hueat_log"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_scheduler"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli"
@@ -39,12 +39,12 @@ func main() {
 	// Set default Timezone
 	os.Setenv("TZ", "UTC")
 	// ENV Variables
-	envs := ceng_env.ReadEnvs()
+	envs := hueat_env.ReadEnvs()
 	// Set Logger
-	logger := ceng_log.NewLogger(envs.AppMode)
+	logger := hueat_log.NewLogger(envs.AppMode)
 	zap.ReplaceGlobals(logger)
 	// DB Connection
-	dbConnection := ceng_db.NewDatabaseConnection(
+	dbConnection := hueat_db.NewDatabaseConnection(
 		envs.DbHost,
 		envs.DbUsername,
 		envs.DbPassword,
@@ -55,9 +55,9 @@ func main() {
 		envs.AppMode,
 	)
 	// Scheduler
-	scheduler := ceng_scheduler.NewScheduler()
+	scheduler := hueat_scheduler.NewScheduler()
 	// PUB-SUB agent
-	pubSubAgent := ceng_pubsub.NewPubSubAgent(dbConnection, scheduler, envs.PubSubPersistEventsOnDb, envs.PubSubPersistEventsRetentionDays, envs.PubSubSyncMode)
+	pubSubAgent := hueat_pubsub.NewPubSubAgent(dbConnection, scheduler, envs.PubSubPersistEventsOnDb, envs.PubSubPersistEventsRetentionDays, envs.PubSubSyncMode)
 
 	// Init modules
 	r := gin.New()

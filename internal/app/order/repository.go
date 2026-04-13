@@ -3,8 +3,8 @@ package order
 import (
 	"fmt"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_utils"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -15,9 +15,9 @@ type orderRepositoryInterface interface {
 	getOrderByTableID(tx *gorm.DB, tableID uuid.UUID, forUpdate bool) (orderEntity, error)
 	listCoursesByOrderID(tx *gorm.DB, orderID uuid.UUID, forUpdate bool) ([]courseEntity, int64, error)
 	listCourseSelectionsByCourseID(tx *gorm.DB, courseID uuid.UUID, forUpdate bool) ([]courseSelectionEntity, int64, error)
-	saveOrder(tx *gorm.DB, order orderEntity, operation ceng_db.SaveOperation) (orderEntity, error)
-	saveCourse(tx *gorm.DB, course courseEntity, operation ceng_db.SaveOperation) (courseEntity, error)
-	saveSelection(tx *gorm.DB, selection courseSelectionEntity, operation ceng_db.SaveOperation) (courseSelectionEntity, error)
+	saveOrder(tx *gorm.DB, order orderEntity, operation hueat_db.SaveOperation) (orderEntity, error)
+	saveCourse(tx *gorm.DB, course courseEntity, operation hueat_db.SaveOperation) (courseEntity, error)
+	saveSelection(tx *gorm.DB, selection courseSelectionEntity, operation hueat_db.SaveOperation) (courseSelectionEntity, error)
 	deleteSelectionsByCourseID(tx *gorm.DB, courseID uuid.UUID) error
 	getOrderDetailByTableID(tx *gorm.DB, tableID uuid.UUID) ([]orderDetailEntity, error)
 	getOrderDetailByTableIDAndCourseID(tx *gorm.DB, tableID uuid.UUID, courseID uuid.UUID) ([]orderDetailEntity, error)
@@ -45,7 +45,7 @@ func (r orderRepository) checkTableExists(tx *gorm.DB, userID *uuid.UUID, tableI
 	if result.Error != nil {
 		return false, result.Error
 	}
-	if result.RowsAffected == 0 || ceng_utils.IsEmpty(model) {
+	if result.RowsAffected == 0 || hueat_utils.IsEmpty(model) {
 		return false, nil
 	}
 	return true, nil
@@ -78,7 +78,7 @@ func (r orderRepository) listCoursesByOrderID(tx *gorm.DB, orderID uuid.UUID, fo
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s", "position", ceng_db.Asc)
+	order = fmt.Sprintf("%s %s", "position", hueat_db.Asc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 
@@ -117,15 +117,15 @@ func (r orderRepository) listCourseSelectionsByCourseID(tx *gorm.DB, courseID uu
 	return entities, totalCount, nil
 }
 
-func (r orderRepository) saveOrder(tx *gorm.DB, order orderEntity, operation ceng_db.SaveOperation) (orderEntity, error) {
+func (r orderRepository) saveOrder(tx *gorm.DB, order orderEntity, operation hueat_db.SaveOperation) (orderEntity, error) {
 	var model = orderModel(order)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {
@@ -134,15 +134,15 @@ func (r orderRepository) saveOrder(tx *gorm.DB, order orderEntity, operation cen
 	return order, nil
 }
 
-func (r orderRepository) saveCourse(tx *gorm.DB, course courseEntity, operation ceng_db.SaveOperation) (courseEntity, error) {
+func (r orderRepository) saveCourse(tx *gorm.DB, course courseEntity, operation hueat_db.SaveOperation) (courseEntity, error) {
 	var model = courseModel(course)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {
@@ -151,15 +151,15 @@ func (r orderRepository) saveCourse(tx *gorm.DB, course courseEntity, operation 
 	return course, nil
 }
 
-func (r orderRepository) saveSelection(tx *gorm.DB, selection courseSelectionEntity, operation ceng_db.SaveOperation) (courseSelectionEntity, error) {
+func (r orderRepository) saveSelection(tx *gorm.DB, selection courseSelectionEntity, operation hueat_db.SaveOperation) (courseSelectionEntity, error) {
 	var model = courseSelectionModel(selection)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {

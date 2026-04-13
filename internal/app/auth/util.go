@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_auth"
+	"github.com/hueat/backend/internal/pkg/hueat_auth"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -49,7 +49,7 @@ func (u authUtil) generateToken(user authUserEntity) (authTokenEntity, error) {
 		Permissions: user.Permissions,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        accessTokenID.String(),
-			Issuer:    "casari-eat-n-go",
+			Issuer:    "hueat",
 			Subject:   user.ID.String(),
 			ExpiresAt: jwt.NewNumericDate(accessTokenExpiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -64,10 +64,10 @@ func (u authUtil) generateToken(user authUserEntity) (authTokenEntity, error) {
 
 	// Create Refresh Token with claims
 	refreshTokenClaims := CustomClaims{
-		Permissions: []string{ceng_auth.UPDATE_REFRESH_TOKEN},
+		Permissions: []string{hueat_auth.UPDATE_REFRESH_TOKEN},
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        refreshTokenID.String(),
-			Issuer:    "casari-eat-n-go",
+			Issuer:    "hueat",
 			Subject:   user.ID.String(),
 			ExpiresAt: jwt.NewNumericDate(refreshTokenExpiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),

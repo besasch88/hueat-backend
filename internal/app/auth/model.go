@@ -16,7 +16,7 @@ type authSessionModel struct {
 }
 
 func (m authSessionModel) TableName() string {
-	return "ceng_auth_session"
+	return "hueat_auth_session"
 }
 
 func (m authSessionModel) toEntity() authSessionEntity {
@@ -32,7 +32,7 @@ type authUserModel struct {
 }
 
 func (m authUserModel) TableName() string {
-	return "ceng_user"
+	return "hueat_user"
 }
 
 func (m authUserModel) toEntity() authUserEntity {

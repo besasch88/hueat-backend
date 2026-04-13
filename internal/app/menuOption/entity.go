@@ -1,7 +1,7 @@
 package menuOption
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
-type menuOptionEntity ceng_pubsub.MenuOptionEventEntity
+type menuOptionEntity hueat_pubsub.MenuOptionEventEntity

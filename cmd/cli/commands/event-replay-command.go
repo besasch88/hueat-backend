@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 	"github.com/urfave/cli"
 	"gorm.io/gorm"
 )
@@ -12,7 +12,7 @@ import (
 /*
 EventReplayCommand replays historical events to be re-processed by consumers
 */
-func EventReplayCommand(c *cli.Context, m *ceng_pubsub.PubSubAgent, tx *gorm.DB) error {
+func EventReplayCommand(c *cli.Context, m *hueat_pubsub.PubSubAgent, tx *gorm.DB) error {
 	startFrom := c.String("start-from")
 	topicName := c.String("topic-name")
 
@@ -26,9 +26,9 @@ func EventReplayCommand(c *cli.Context, m *ceng_pubsub.PubSubAgent, tx *gorm.DB)
 		}
 	}
 	// Validate topic-name if set
-	var topic *ceng_pubsub.PubSubTopic
+	var topic *hueat_pubsub.PubSubTopic
 	if topicName != "" {
-		topic = (*ceng_pubsub.PubSubTopic)(&topicName)
+		topic = (*hueat_pubsub.PubSubTopic)(&topicName)
 	}
 	// Execute the command
 	if err := m.ReplayMessages(tx, topic, startFromTime); err != nil {

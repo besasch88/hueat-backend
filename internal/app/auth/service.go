@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_utils"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -35,7 +35,7 @@ func (s authService) login(ctx *gin.Context, username string, password string) (
 	if err != nil {
 		return authTokenEntity{}, err
 	}
-	if ceng_utils.IsEmpty(user) {
+	if hueat_utils.IsEmpty(user) {
 		return authTokenEntity{}, errInvalidCredentials
 	}
 	valid := s.util.checkPassword(password, user.Password)
@@ -56,7 +56,7 @@ func (s authService) login(ctx *gin.Context, username string, password string) (
 			ExpiresAt:    token.RefreshTokenExpiresAt,
 			RefreshToken: token.RefreshToken,
 		}
-		if _, err := s.repository.saveAuthSessionEntity(tx, authEntity, ceng_db.Create); err != nil {
+		if _, err := s.repository.saveAuthSessionEntity(tx, authEntity, hueat_db.Create); err != nil {
 			return err
 		}
 		return nil
@@ -75,7 +75,7 @@ func (s authService) refreshToken(ctx *gin.Context, refreshToken string) (authTo
 		if err != nil {
 			return err
 		}
-		if ceng_utils.IsEmpty(authEntity) {
+		if hueat_utils.IsEmpty(authEntity) {
 			return errExpiredRefreshToken
 		}
 		// Find the user and its information like claims
@@ -91,7 +91,7 @@ func (s authService) refreshToken(ctx *gin.Context, refreshToken string) (authTo
 		authEntity.CreatedAt = token.RefreshTokenCreatedAt
 		authEntity.ExpiresAt = token.RefreshTokenExpiresAt
 		authEntity.RefreshToken = token.RefreshToken
-		if _, err := s.repository.saveAuthSessionEntity(tx, authEntity, ceng_db.Update); err != nil {
+		if _, err := s.repository.saveAuthSessionEntity(tx, authEntity, hueat_db.Update); err != nil {
 			return err
 		}
 		return nil
@@ -110,7 +110,7 @@ func (s authService) revokeRefreshToken(ctx *gin.Context, refreshToken string) e
 			return err
 		}
 		// If not found, return without error
-		if ceng_utils.IsEmpty(authEntity) {
+		if hueat_utils.IsEmpty(authEntity) {
 			return errExpiredRefreshToken
 		}
 		// If found, delete it

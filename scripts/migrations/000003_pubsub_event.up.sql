@@ -1,4 +1,4 @@
-CREATE TABLE "ceng_event" (
+CREATE TABLE "hueat_event" (
     "id" VARCHAR(36) PRIMARY KEY,
     "topic" VARCHAR(255) NOT NULL,
     "event_type" VARCHAR(255) NOT NULL,
@@ -7,4 +7,4 @@ CREATE TABLE "ceng_event" (
 );
 
 -- Composite index for fast lookups by topic + date range
-CREATE INDEX idx_ceng_event_topic_event_date ON "ceng_event" ("topic", "event_date");
+CREATE INDEX idx_hueat_event_topic_event_date ON "hueat_event" ("topic", "event_date");

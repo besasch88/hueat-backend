@@ -1,8 +1,8 @@
 package menu
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_err"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_err"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -13,11 +13,11 @@ type menuServiceInterface interface {
 
 type menuService struct {
 	storage     *gorm.DB
-	pubSubAgent *ceng_pubsub.PubSubAgent
+	pubSubAgent *hueat_pubsub.PubSubAgent
 	repository  menuRepositoryInterface
 }
 
-func newMenuService(storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAgent, repository menuRepositoryInterface) menuService {
+func newMenuService(storage *gorm.DB, pubSubAgent *hueat_pubsub.PubSubAgent, repository menuRepositoryInterface) menuService {
 	return menuService{
 		storage:     storage,
 		pubSubAgent: pubSubAgent,
@@ -28,15 +28,15 @@ func newMenuService(storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAgent, repo
 func (s menuService) getMenu(ctx *gin.Context, input getMenuInputDto) (menu, error) {
 	categories, _, err := s.repository.listMenuCategories(s.storage, input.Target, false)
 	if err != nil || categories == nil {
-		return menu{}, ceng_err.ErrGeneric
+		return menu{}, hueat_err.ErrGeneric
 	}
 	items, _, err := s.repository.listMenuItems(s.storage, input.Target, false)
 	if err != nil || items == nil {
-		return menu{}, ceng_err.ErrGeneric
+		return menu{}, hueat_err.ErrGeneric
 	}
 	options, _, err := s.repository.listMenuOptions(s.storage, input.Target, false)
 	if err != nil || options == nil {
-		return menu{}, ceng_err.ErrGeneric
+		return menu{}, hueat_err.ErrGeneric
 	}
 
 	menu := menu{

@@ -1,7 +1,7 @@
 package printer
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
-type printerEntity ceng_pubsub.PrinterEventEntity
+type printerEntity hueat_pubsub.PrinterEventEntity

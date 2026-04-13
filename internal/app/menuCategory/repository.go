@@ -3,8 +3,8 @@ package menuCategory
 import (
 	"fmt"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_utils"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -15,7 +15,7 @@ type menuCategoryRepositoryInterface interface {
 	listMenuCategories(tx *gorm.DB, forUpdate bool) ([]menuCategoryEntity, int64, error)
 	getMenuCategoryByID(tx *gorm.DB, menuCategoryID uuid.UUID, forUpdate bool) (menuCategoryEntity, error)
 	getMenuCategoryByTitle(tx *gorm.DB, menuCategoryTitle string, forUpdate bool) (menuCategoryEntity, error)
-	saveMenuCategory(tx *gorm.DB, menuCategory menuCategoryEntity, operation ceng_db.SaveOperation) (menuCategoryEntity, error)
+	saveMenuCategory(tx *gorm.DB, menuCategory menuCategoryEntity, operation hueat_db.SaveOperation) (menuCategoryEntity, error)
 	deleteMenuCategory(tx *gorm.DB, menuCategory menuCategoryEntity) (menuCategoryEntity, error)
 	recalculateMenuCategorysPosition(tx *gorm.DB) ([]menuCategoryEntity, error)
 }
@@ -37,7 +37,7 @@ func (r menuCategoryRepository) checkPrinterExists(tx *gorm.DB, printerID uuid.U
 	if result.Error != nil {
 		return false, result.Error
 	}
-	if result.RowsAffected == 0 || ceng_utils.IsEmpty(model) {
+	if result.RowsAffected == 0 || hueat_utils.IsEmpty(model) {
 		return false, nil
 	}
 	return true, nil
@@ -53,7 +53,7 @@ func (r menuCategoryRepository) listMenuCategories(tx *gorm.DB, forUpdate bool) 
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s", "position", ceng_db.Asc)
+	order = fmt.Sprintf("%s %s", "position", hueat_db.Asc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 
@@ -100,15 +100,15 @@ func (r menuCategoryRepository) getMenuCategoryByTitle(tx *gorm.DB, menuCategory
 	return model.toEntity(), nil
 }
 
-func (r menuCategoryRepository) saveMenuCategory(tx *gorm.DB, menuCategory menuCategoryEntity, operation ceng_db.SaveOperation) (menuCategoryEntity, error) {
+func (r menuCategoryRepository) saveMenuCategory(tx *gorm.DB, menuCategory menuCategoryEntity, operation hueat_db.SaveOperation) (menuCategoryEntity, error) {
 	var model = menuCategoryModel(menuCategory)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {
@@ -131,9 +131,9 @@ func (r menuCategoryRepository) recalculateMenuCategorysPosition(tx *gorm.DB) ([
 	err := tx.Raw(`
 		WITH ordered AS (
 			SELECT id, ROW_NUMBER() OVER (ORDER BY position ASC, updated_at DESC) AS new_position
-			FROM ceng_menu_category
+			FROM hueat_menu_category
 		)
-		UPDATE ceng_menu_category t
+		UPDATE hueat_menu_category t
 		SET position = o.new_position, updated_at = NOW()
 		FROM ordered o
 		WHERE t.id = o.id

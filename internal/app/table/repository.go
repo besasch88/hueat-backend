@@ -3,7 +3,7 @@ package table
 import (
 	"fmt"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,7 +13,7 @@ type tableRepositoryInterface interface {
 	listTables(tx *gorm.DB, userId *uuid.UUID, inside bool, includeClosed *bool, forUpdate bool) ([]tableEntity, int64, error)
 	getTableByID(tx *gorm.DB, tableID uuid.UUID, userId *uuid.UUID, forUpdate bool) (tableEntity, error)
 	getOpenTableByName(tx *gorm.DB, tableName string, forUpdate bool) (tableEntity, error)
-	saveTable(tx *gorm.DB, table tableEntity, operation ceng_db.SaveOperation) (tableEntity, error)
+	saveTable(tx *gorm.DB, table tableEntity, operation hueat_db.SaveOperation) (tableEntity, error)
 	deleteTable(tx *gorm.DB, table tableEntity) (tableEntity, error)
 }
 
@@ -46,7 +46,7 @@ func (r tableRepository) listTables(tx *gorm.DB, userId *uuid.UUID, inside bool,
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
-	order = fmt.Sprintf("%s %s, %s %s", "close", ceng_db.Asc, "created_at", ceng_db.Desc)
+	order = fmt.Sprintf("%s %s, %s %s", "close", hueat_db.Asc, "created_at", hueat_db.Desc)
 	result := query.Order(order).Find(&models)
 	queryCount.Count(&totalCount)
 
@@ -97,15 +97,15 @@ func (r tableRepository) getOpenTableByName(tx *gorm.DB, tableName string, forUp
 	return model.toEntity(), nil
 }
 
-func (r tableRepository) saveTable(tx *gorm.DB, table tableEntity, operation ceng_db.SaveOperation) (tableEntity, error) {
+func (r tableRepository) saveTable(tx *gorm.DB, table tableEntity, operation hueat_db.SaveOperation) (tableEntity, error) {
 	var model = tableModel(table)
 	var err error
 	switch operation {
-	case ceng_db.Create:
+	case hueat_db.Create:
 		err = tx.Create(model).Error
-	case ceng_db.Update:
+	case hueat_db.Update:
 		err = tx.Updates(model).Error
-	case ceng_db.Upsert:
+	case hueat_db.Upsert:
 		err = tx.Save(model).Error
 	}
 	if err != nil {

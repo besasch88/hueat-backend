@@ -1,2 +1,2 @@
-ALTER TABLE "ceng_table"
+ALTER TABLE "hueat_table"
 ADD COLUMN "inside" BOOLEAN NOT NULL DEFAULT TRUE;

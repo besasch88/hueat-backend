@@ -1,12 +1,12 @@
 package menu
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
-type menuCategoryEntity ceng_pubsub.MenuCategoryEventEntity
-type menuItemEntity ceng_pubsub.MenuItemEventEntity
-type menuOptionEntity ceng_pubsub.MenuOptionEventEntity
+type menuCategoryEntity hueat_pubsub.MenuCategoryEventEntity
+type menuItemEntity hueat_pubsub.MenuItemEventEntity
+type menuOptionEntity hueat_pubsub.MenuOptionEventEntity
 
 type menuOption struct {
 	menuOptionEntity

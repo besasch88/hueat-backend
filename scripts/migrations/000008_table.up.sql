@@ -1,4 +1,4 @@
-CREATE TABLE "ceng_table" (
+CREATE TABLE "hueat_table" (
     "id" VARCHAR(36) PRIMARY KEY NOT NULL,
     "user_id" VARCHAR(36) NOT NULL,
     "name" VARCHAR(255) NOT NULL,

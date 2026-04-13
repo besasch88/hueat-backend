@@ -1,8 +1,8 @@
 package order
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_log"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_log"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 	"go.uber.org/zap"
 )
 
@@ -11,11 +11,11 @@ type orderConsumerInterface interface {
 }
 
 type orderConsumer struct {
-	pubSub  *ceng_pubsub.PubSubAgent
+	pubSub  *hueat_pubsub.PubSubAgent
 	service orderServiceInterface
 }
 
-func newOrderConsumer(pubSub *ceng_pubsub.PubSubAgent, service orderServiceInterface) orderConsumer {
+func newOrderConsumer(pubSub *hueat_pubsub.PubSubAgent, service orderServiceInterface) orderConsumer {
 	consumer := orderConsumer{
 		pubSub:  pubSub,
 		service: service,
@@ -25,13 +25,13 @@ func newOrderConsumer(pubSub *ceng_pubsub.PubSubAgent, service orderServiceInter
 
 func (r orderConsumer) subscribe() {
 	go func() {
-		messageChannel := r.pubSub.Subscribe(ceng_pubsub.TopicTableV1)
+		messageChannel := r.pubSub.Subscribe(hueat_pubsub.TopicTableV1)
 		isChannelOpen := true
 		for isChannelOpen {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						ceng_log.LogPanicError(r, "order-consumer", "Panic occurred in handling a new message")
+						hueat_log.LogPanicError(r, "order-consumer", "Panic occurred in handling a new message")
 					}
 				}()
 				msg, channelOpen := <-messageChannel
@@ -51,10 +51,10 @@ func (r orderConsumer) subscribe() {
 					zap.String("event-id", msg.Message.EventID.String()),
 					zap.String("event-type", string(msg.Message.EventType)),
 				)
-				if msg.Message.EventType != ceng_pubsub.TableCreatedEvent {
+				if msg.Message.EventType != hueat_pubsub.TableCreatedEvent {
 					return
 				}
-				event := msg.Message.EventEntity.(*ceng_pubsub.TableEventEntity)
+				event := msg.Message.EventEntity.(*hueat_pubsub.TableEventEntity)
 				// Create order on Table creation
 				if err := r.service.createOrderFromEvent(*event); err != nil {
 					zap.L().Error("Impossible to update orders from RS Engine event", zap.String("service", "order-consumer"))

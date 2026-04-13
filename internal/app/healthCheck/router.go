@@ -3,8 +3,8 @@ package healthCheck
 import (
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_router"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_timeout"
+	"github.com/hueat/backend/internal/pkg/hueat_router"
+	"github.com/hueat/backend/internal/pkg/hueat_timeout"
 	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ func newHealthCheckRouter(service healthCheckServiceInterface) healthCheckRouter
 func (r healthCheckRouter) register(router *gin.RouterGroup) {
 	router.GET(
 		"/health-check",
-		ceng_timeout.TimeoutMiddleware(time.Duration(1)*time.Second),
+		hueat_timeout.TimeoutMiddleware(time.Duration(1)*time.Second),
 		func(ctx *gin.Context) {
 			// Business Logic
 			isOk, err := r.service.checkConnection(ctx)
@@ -36,9 +36,9 @@ func (r healthCheckRouter) register(router *gin.RouterGroup) {
 			// Errors and output handler
 			if err != nil {
 				zap.L().Error("Something went wrong", zap.String("service", "health-check-router"), zap.Error(err))
-				ceng_router.ReturnGenericError(ctx)
+				hueat_router.ReturnGenericError(ctx)
 				return
 			}
-			ceng_router.ReturnOk(ctx, &gin.H{"ok": isOk})
+			hueat_router.ReturnOk(ctx, &gin.H{"ok": isOk})
 		})
 }

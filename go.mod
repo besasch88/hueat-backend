@@ -1,4 +1,4 @@
-module github.com/casari-eat-n-go/backend
+module github.com/hueat/backend
 
 go 1.25.0
 

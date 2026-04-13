@@ -3,9 +3,9 @@ package menu
 import (
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_auth"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_router"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_timeout"
+	"github.com/hueat/backend/internal/pkg/hueat_auth"
+	"github.com/hueat/backend/internal/pkg/hueat_router"
+	"github.com/hueat/backend/internal/pkg/hueat_timeout"
 	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
@@ -29,17 +29,17 @@ func newMenuRouter(service menuServiceInterface) menuRouter {
 func (r menuRouter) register(router *gin.RouterGroup) {
 	router.GET(
 		"/menu",
-		ceng_auth.AuthMiddleware([]string{ceng_auth.READ_MENU}),
-		ceng_timeout.TimeoutMiddleware(time.Duration(1)*time.Second),
+		hueat_auth.AuthMiddleware([]string{hueat_auth.READ_MENU}),
+		hueat_timeout.TimeoutMiddleware(time.Duration(1)*time.Second),
 		func(ctx *gin.Context) {
 			// Input validation
 			var request getMenuInputDto
-			if err := ceng_router.BindParameters(ctx, &request); err != nil {
-				ceng_router.ReturnValidationError(ctx, err)
+			if err := hueat_router.BindParameters(ctx, &request); err != nil {
+				hueat_router.ReturnValidationError(ctx, err)
 				return
 			}
 			if err := request.validate(); err != nil {
-				ceng_router.ReturnValidationError(ctx, err)
+				hueat_router.ReturnValidationError(ctx, err)
 				return
 			}
 			// Business Logic
@@ -47,10 +47,10 @@ func (r menuRouter) register(router *gin.RouterGroup) {
 			// Errors and output handler
 			if err != nil {
 				zap.L().Error("Something went wrong", zap.String("service", "menu-router"), zap.Error(err))
-				ceng_router.ReturnGenericError(ctx)
+				hueat_router.ReturnGenericError(ctx)
 				return
 			}
-			ceng_router.ReturnOk(ctx, &gin.H{"item": item})
+			hueat_router.ReturnOk(ctx, &gin.H{"item": item})
 		})
 
 }

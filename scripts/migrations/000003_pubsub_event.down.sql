@@ -1,3 +1,3 @@
-DROP INDEX IF EXISTS "idx_ceng_event_topic_event_date";
+DROP INDEX IF EXISTS "idx_hueat_event_topic_event_date";
 
-DROP TABLE IF EXISTS "ceng_event";
+DROP TABLE IF EXISTS "hueat_event";

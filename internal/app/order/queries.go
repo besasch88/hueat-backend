@@ -15,18 +15,18 @@ SELECT
     mo.title AS menu_option_title,
     mo.price AS menu_option_price,
     cs.quantity
-FROM ceng_order o
-JOIN ceng_table t ON o.table_id = t.id
-JOIN ceng_user u ON t.user_id = u.id
-JOIN ceng_course c ON c.order_id = o.id
-JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
-JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
-JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON  (
+FROM hueat_order o
+JOIN hueat_table t ON o.table_id = t.id
+JOIN hueat_user u ON t.user_id = u.id
+JOIN hueat_course c ON c.order_id = o.id
+JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
+JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
+JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
+JOIN hueat_printer p ON  (
     (t.inside = TRUE AND p.id = mc.printer_inside_id)
     OR (t.inside = FALSE AND p.id = mc.printer_outside_id)
 )
-LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
+LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND p.active = true
 ORDER BY
@@ -52,18 +52,18 @@ SELECT
     mo.title AS menu_option_title,
     mo.price AS menu_option_price,
     cs.quantity
-FROM ceng_order o
-JOIN ceng_table t ON o.table_id = t.id
-JOIN ceng_user u ON t.user_id = u.id
-JOIN ceng_course c ON c.order_id = o.id
-JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
-JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
-JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON  (
+FROM hueat_order o
+JOIN hueat_table t ON o.table_id = t.id
+JOIN hueat_user u ON t.user_id = u.id
+JOIN hueat_course c ON c.order_id = o.id
+JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
+JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
+JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
+JOIN hueat_printer p ON  (
     (t.inside = TRUE AND p.id = mc.printer_inside_id)
     OR (t.inside = FALSE AND p.id = mc.printer_outside_id)
 )
-LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
+LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND c.id = $2
 AND p.active = true
@@ -90,18 +90,18 @@ SELECT
     mo.title AS menu_option_title,
     mo.price AS menu_option_price,
     SUM(cs.quantity) AS quantity
-FROM ceng_order o
-JOIN ceng_table t ON o.table_id = t.id
-JOIN ceng_user u ON t.user_id = u.id
-JOIN ceng_course c ON c.order_id = o.id
-JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
-JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
-JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON p.title = 'PRECONTO' AND (
+FROM hueat_order o
+JOIN hueat_table t ON o.table_id = t.id
+JOIN hueat_user u ON t.user_id = u.id
+JOIN hueat_course c ON c.order_id = o.id
+JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
+JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
+JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
+JOIN hueat_printer p ON p.title = 'PRECONTO' AND (
     (t.inside = TRUE  AND p.inside = TRUE)
     OR (t.inside = FALSE AND p.outside = TRUE)
 )
-LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
+LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 GROUP BY
     u.username,
@@ -133,18 +133,18 @@ SELECT
     p.title AS printer_title,
     p.url AS printer_url,
     SUM(cs.quantity * COALESCE(mo.price, mi.price)) AS price_total
-FROM ceng_order o
-JOIN ceng_table t ON o.table_id = t.id
-JOIN ceng_user u ON t.user_id = u.id
-JOIN ceng_course c ON c.order_id = o.id
-JOIN ceng_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
-JOIN ceng_menu_item mi ON mi.id = cs.menu_item_id
-JOIN ceng_menu_category mc ON mc.id = mi.menu_category_id
-JOIN ceng_printer p ON p.title = 'PAGAMENTO' AND (
+FROM hueat_order o
+JOIN hueat_table t ON o.table_id = t.id
+JOIN hueat_user u ON t.user_id = u.id
+JOIN hueat_course c ON c.order_id = o.id
+JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
+JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
+JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
+JOIN hueat_printer p ON p.title = 'PAGAMENTO' AND (
     (t.inside = TRUE  AND p.inside = TRUE)
     OR (t.inside = FALSE AND p.outside = TRUE)
 )
-LEFT JOIN ceng_menu_option mo ON mo.id = cs.menu_option_id
+LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND p.active = true
 GROUP BY

@@ -1,4 +1,4 @@
-CREATE TABLE "ceng_menu_option" (
+CREATE TABLE "hueat_menu_option" (
     "id" VARCHAR(36) PRIMARY KEY NOT NULL,
     "menu_item_id" VARCHAR(36) NOT NULL,
     "title" VARCHAR(255) NOT NULL,
@@ -9,11 +9,11 @@ CREATE TABLE "ceng_menu_option" (
     "updated_at" TIMESTAMP NOT NULL
 );
 
-ALTER TABLE "ceng_menu_option"
-ADD CONSTRAINT "fk_ceng_menu_option_menu_item"
+ALTER TABLE "hueat_menu_option"
+ADD CONSTRAINT "fk_hueat_menu_option_menu_item"
 FOREIGN KEY ("menu_item_id")
-REFERENCES "ceng_menu_item" ("id")
+REFERENCES "hueat_menu_item" ("id")
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
-ALTER TABLE "ceng_menu_option" ADD CONSTRAINT "idx_ceng_menu_option_title" UNIQUE ("title");
+ALTER TABLE "hueat_menu_option" ADD CONSTRAINT "idx_hueat_menu_option_title" UNIQUE ("title");

@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_log"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_scheduler"
+	"github.com/hueat/backend/internal/pkg/hueat_log"
+	"github.com/hueat/backend/internal/pkg/hueat_scheduler"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -12,13 +12,13 @@ type authSchedulerInterface interface {
 }
 
 type authScheduler struct {
-	scheduler        *ceng_scheduler.Scheduler
+	scheduler        *hueat_scheduler.Scheduler
 	storage          *gorm.DB
-	singleConnection *ceng_scheduler.SingleConnection
+	singleConnection *hueat_scheduler.SingleConnection
 	repository       authRepositoryInterface
 }
 
-func newAuthScheduler(storage *gorm.DB, scheduler *ceng_scheduler.Scheduler, repository authRepositoryInterface) authScheduler {
+func newAuthScheduler(storage *gorm.DB, scheduler *hueat_scheduler.Scheduler, repository authRepositoryInterface) authScheduler {
 	singleConnection := scheduler.GetSingleConnection(storage)
 	return authScheduler{
 		scheduler:        scheduler,
@@ -30,11 +30,11 @@ func newAuthScheduler(storage *gorm.DB, scheduler *ceng_scheduler.Scheduler, rep
 
 func (s authScheduler) init() {
 	// Declare all jobs to be scheduled
-	var jobsToSchedule []ceng_scheduler.ScheduledJob = []ceng_scheduler.ScheduledJob{
+	var jobsToSchedule []hueat_scheduler.ScheduledJob = []hueat_scheduler.ScheduledJob{
 		{
 			Schedule: "10 * * * *", // Every hour at HH:10
 			Handler:  s.cleanUpExpiredRefreshToken,
-			Parameters: ceng_scheduler.ScheduledJobParameter{
+			Parameters: hueat_scheduler.ScheduledJobParameter{
 				JobID: 29347129,
 				Title: "CleanUpExpiredRefreshToken",
 			},
@@ -42,7 +42,7 @@ func (s authScheduler) init() {
 	}
 	// Schedule all jobs
 	for _, jobToSchedule := range jobsToSchedule {
-		s.scheduler.AddJob(ceng_scheduler.ScheduledJob{
+		s.scheduler.AddJob(hueat_scheduler.ScheduledJob{
 			Schedule:   jobToSchedule.Schedule,
 			Handler:    jobToSchedule.Handler,
 			Parameters: jobToSchedule.Parameters,
@@ -54,10 +54,10 @@ func (s authScheduler) init() {
 /*
 Scheduled function to run. It cleanup expired refresh tokens
 */
-func (s authScheduler) cleanUpExpiredRefreshToken(p ceng_scheduler.ScheduledJobParameter) error {
+func (s authScheduler) cleanUpExpiredRefreshToken(p hueat_scheduler.ScheduledJobParameter) error {
 	defer func() {
 		if r := recover(); r != nil {
-			ceng_log.LogPanicError(r, "CleanUpExpiredRefreshToken", "Panic occurred in cron activity")
+			hueat_log.LogPanicError(r, "CleanUpExpiredRefreshToken", "Panic occurred in cron activity")
 		}
 	}()
 	// If this istance acquires the lock, executre the business logic

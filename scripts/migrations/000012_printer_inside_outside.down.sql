@@ -1,5 +1,5 @@
-ALTER TABLE "ceng_printer"
+ALTER TABLE "hueat_printer"
 DROP COLUMN "inside",
 DROP COLUMN "outside";
 
-ALTER TABLE "ceng_printer" ADD CONSTRAINT "idx_ceng_printer_title" UNIQUE ("title");
+ALTER TABLE "hueat_printer" ADD CONSTRAINT "idx_hueat_printer_title" UNIQUE ("title");

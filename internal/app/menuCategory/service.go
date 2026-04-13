@@ -4,10 +4,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_db"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_err"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_pubsub"
-	"github.com/casari-eat-n-go/backend/internal/pkg/ceng_utils"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
+	"github.com/hueat/backend/internal/pkg/hueat_err"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -23,11 +23,11 @@ type menuCategoryServiceInterface interface {
 
 type menuCategoryService struct {
 	storage     *gorm.DB
-	pubSubAgent *ceng_pubsub.PubSubAgent
+	pubSubAgent *hueat_pubsub.PubSubAgent
 	repository  menuCategoryRepositoryInterface
 }
 
-func newMenuCategoryService(storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAgent, repository menuCategoryRepositoryInterface) menuCategoryService {
+func newMenuCategoryService(storage *gorm.DB, pubSubAgent *hueat_pubsub.PubSubAgent, repository menuCategoryRepositoryInterface) menuCategoryService {
 	return menuCategoryService{
 		storage:     storage,
 		pubSubAgent: pubSubAgent,
@@ -38,7 +38,7 @@ func newMenuCategoryService(storage *gorm.DB, pubSubAgent *ceng_pubsub.PubSubAge
 func (s menuCategoryService) listMenuCategories(ctx *gin.Context) ([]menuCategoryEntity, int64, error) {
 	items, totalCount, err := s.repository.listMenuCategories(s.storage, false)
 	if err != nil || items == nil {
-		return []menuCategoryEntity{}, 0, ceng_err.ErrGeneric
+		return []menuCategoryEntity{}, 0, hueat_err.ErrGeneric
 	}
 	return items, totalCount, nil
 }
@@ -47,9 +47,9 @@ func (s menuCategoryService) getMenuCategoryByID(ctx *gin.Context, input getMenu
 	menuCategoryID := uuid.MustParse(input.ID)
 	item, err := s.repository.getMenuCategoryByID(s.storage, menuCategoryID, false)
 	if err != nil {
-		return menuCategoryEntity{}, ceng_err.ErrGeneric
+		return menuCategoryEntity{}, hueat_err.ErrGeneric
 	}
-	if ceng_utils.IsEmpty(item) {
+	if hueat_utils.IsEmpty(item) {
 		return menuCategoryEntity{}, errMenuCategoryNotFound
 	}
 	return item, nil
@@ -59,7 +59,7 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 	if input.PrinterInsideID != nil {
 		printerId := uuid.MustParse(*input.PrinterInsideID)
 		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
-			return menuCategoryEntity{}, ceng_err.ErrGeneric
+			return menuCategoryEntity{}, hueat_err.ErrGeneric
 		} else if !exists {
 			return menuCategoryEntity{}, errPrinterNotFound
 		}
@@ -67,7 +67,7 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 	if input.PrinterOutsideID != nil {
 		printerId := uuid.MustParse(*input.PrinterOutsideID)
 		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
-			return menuCategoryEntity{}, ceng_err.ErrGeneric
+			return menuCategoryEntity{}, hueat_err.ErrGeneric
 		} else if !exists {
 			return menuCategoryEntity{}, errPrinterNotFound
 		}
@@ -78,35 +78,35 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 		ID:               uuid.New(),
 		Title:            input.Title,
 		Position:         maxValue,
-		Active:           ceng_utils.BoolPtr(false),
-		Inside:           ceng_utils.BoolPtr(true),
-		Outside:          ceng_utils.BoolPtr(true),
-		PrinterInsideID:  ceng_utils.GetOptionalUUIDFromString(input.PrinterInsideID),
-		PrinterOutsideID: ceng_utils.GetOptionalUUIDFromString(input.PrinterOutsideID),
+		Active:           hueat_utils.BoolPtr(false),
+		Inside:           hueat_utils.BoolPtr(true),
+		Outside:          hueat_utils.BoolPtr(true),
+		PrinterInsideID:  hueat_utils.GetOptionalUUIDFromString(input.PrinterInsideID),
+		PrinterOutsideID: hueat_utils.GetOptionalUUIDFromString(input.PrinterOutsideID),
 		CreatedAt:        now,
 		UpdatedAt:        now,
 	}
-	eventsToPublish := []ceng_pubsub.EventToPublish{}
+	eventsToPublish := []hueat_pubsub.EventToPublish{}
 	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
 		var updatedEntities []menuCategoryEntity
 		if item, err := s.repository.getMenuCategoryByTitle(tx, input.Title, false); err != nil {
-			return ceng_err.ErrGeneric
-		} else if !ceng_utils.IsEmpty(item) {
+			return hueat_err.ErrGeneric
+		} else if !hueat_utils.IsEmpty(item) {
 			return errMenuCategorySameTitleAlreadyExists
-		} else if _, err = s.repository.saveMenuCategory(tx, newMenuCategory, ceng_db.Create); err != nil {
-			return ceng_err.ErrGeneric
+		} else if _, err = s.repository.saveMenuCategory(tx, newMenuCategory, hueat_db.Create); err != nil {
+			return hueat_err.ErrGeneric
 		} else if updatedEntities, err = s.repository.recalculateMenuCategorysPosition(tx); err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		} else if newMenuCategory, err = s.repository.getMenuCategoryByID(tx, newMenuCategory.ID, false); err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		}
 
-		if event, err := s.pubSubAgent.Persist(tx, ceng_pubsub.TopicMenuCategoryV1, ceng_pubsub.PubSubMessage{
-			Message: ceng_pubsub.PubSubEvent{
+		if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuCategoryV1, hueat_pubsub.PubSubMessage{
+			Message: hueat_pubsub.PubSubEvent{
 				EventID:   uuid.New(),
 				EventTime: time.Now(),
-				EventType: ceng_pubsub.MenuCategoryCreatedEvent,
-				EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
+				EventType: hueat_pubsub.MenuCategoryCreatedEvent,
+				EventEntity: &hueat_pubsub.MenuCategoryEventEntity{
 					ID:               newMenuCategory.ID,
 					Title:            newMenuCategory.Title,
 					Position:         newMenuCategory.Position,
@@ -118,7 +118,7 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 					CreatedAt:        newMenuCategory.CreatedAt,
 					UpdatedAt:        newMenuCategory.UpdatedAt,
 				},
-				EventChangedFields: ceng_utils.DiffStructs(menuCategoryEntity{}, newMenuCategory),
+				EventChangedFields: hueat_utils.DiffStructs(menuCategoryEntity{}, newMenuCategory),
 			},
 		}); err != nil {
 			return err
@@ -130,12 +130,12 @@ func (s menuCategoryService) createMenuCategory(ctx *gin.Context, input createMe
 			if updatedEntity.ID == newMenuCategory.ID {
 				continue
 			}
-			if event, err := s.pubSubAgent.Persist(tx, ceng_pubsub.TopicMenuCategoryV1, ceng_pubsub.PubSubMessage{
-				Message: ceng_pubsub.PubSubEvent{
+			if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuCategoryV1, hueat_pubsub.PubSubMessage{
+				Message: hueat_pubsub.PubSubEvent{
 					EventID:   uuid.New(),
 					EventTime: time.Now(),
-					EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
-					EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
+					EventType: hueat_pubsub.MenuCategoryUpdatedEvent,
+					EventEntity: &hueat_pubsub.MenuCategoryEventEntity{
 						ID:               updatedEntity.ID,
 						Title:            updatedEntity.Title,
 						Position:         updatedEntity.Position,
@@ -169,7 +169,7 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 	if input.PrinterInsideID != nil {
 		printerId := uuid.MustParse(*input.PrinterInsideID)
 		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
-			return menuCategoryEntity{}, ceng_err.ErrGeneric
+			return menuCategoryEntity{}, hueat_err.ErrGeneric
 		} else if !exists {
 			return menuCategoryEntity{}, errPrinterNotFound
 		}
@@ -177,22 +177,22 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 	if input.PrinterOutsideID != nil {
 		printerId := uuid.MustParse(*input.PrinterOutsideID)
 		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
-			return menuCategoryEntity{}, ceng_err.ErrGeneric
+			return menuCategoryEntity{}, hueat_err.ErrGeneric
 		} else if !exists {
 			return menuCategoryEntity{}, errPrinterNotFound
 		}
 	}
 	now := time.Now()
 	var updatedMenuCategory menuCategoryEntity
-	eventsToPublish := []ceng_pubsub.EventToPublish{}
+	eventsToPublish := []hueat_pubsub.EventToPublish{}
 	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
 		var updatedEntities []menuCategoryEntity
 		menuCategoryId := uuid.MustParse(input.ID)
 		currentMenuCategory, err := s.repository.getMenuCategoryByID(tx, menuCategoryId, true)
 		if err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		}
-		if ceng_utils.IsEmpty(currentMenuCategory) {
+		if hueat_utils.IsEmpty(currentMenuCategory) {
 			return errMenuCategoryNotFound
 		}
 		updatedMenuCategory = currentMenuCategory
@@ -201,9 +201,9 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 		if input.Title != nil {
 			menuCategorySameTitle, err := s.repository.getMenuCategoryByTitle(tx, *input.Title, false)
 			if err != nil {
-				return ceng_err.ErrGeneric
+				return hueat_err.ErrGeneric
 			}
-			if !ceng_utils.IsEmpty(menuCategorySameTitle) && menuCategorySameTitle.ID.String() != input.ID {
+			if !hueat_utils.IsEmpty(menuCategorySameTitle) && menuCategorySameTitle.ID.String() != input.ID {
 				return errMenuCategorySameTitleAlreadyExists
 			}
 			updatedMenuCategory.Title = *input.Title
@@ -218,10 +218,10 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 			updatedMenuCategory.Outside = input.Outside
 		}
 		if input.PrinterInsideID != nil {
-			updatedMenuCategory.PrinterInsideID = ceng_utils.GetOptionalUUIDFromString(input.PrinterInsideID)
+			updatedMenuCategory.PrinterInsideID = hueat_utils.GetOptionalUUIDFromString(input.PrinterInsideID)
 		}
 		if input.PrinterOutsideID != nil {
-			updatedMenuCategory.PrinterOutsideID = ceng_utils.GetOptionalUUIDFromString(input.PrinterOutsideID)
+			updatedMenuCategory.PrinterOutsideID = hueat_utils.GetOptionalUUIDFromString(input.PrinterOutsideID)
 		}
 		if input.Position != nil {
 			// If the step is moving in a lower position (e.g. from 10 to 3),
@@ -231,23 +231,23 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 			}
 			updatedMenuCategory.Position = *input.Position
 		}
-		if _, err = s.repository.saveMenuCategory(tx, updatedMenuCategory, ceng_db.Update); err != nil {
-			return ceng_err.ErrGeneric
+		if _, err = s.repository.saveMenuCategory(tx, updatedMenuCategory, hueat_db.Update); err != nil {
+			return hueat_err.ErrGeneric
 		}
 		if updatedEntities, err = s.repository.recalculateMenuCategorysPosition(tx); err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		}
 		if updatedMenuCategory, err = s.repository.getMenuCategoryByID(tx, updatedMenuCategory.ID, false); err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		}
 
 		// Send an event of menuCategory updated
-		if event, err := s.pubSubAgent.Persist(tx, ceng_pubsub.TopicMenuCategoryV1, ceng_pubsub.PubSubMessage{
-			Message: ceng_pubsub.PubSubEvent{
+		if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuCategoryV1, hueat_pubsub.PubSubMessage{
+			Message: hueat_pubsub.PubSubEvent{
 				EventID:   uuid.New(),
 				EventTime: time.Now(),
-				EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
-				EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
+				EventType: hueat_pubsub.MenuCategoryUpdatedEvent,
+				EventEntity: &hueat_pubsub.MenuCategoryEventEntity{
 					ID:               updatedMenuCategory.ID,
 					Title:            updatedMenuCategory.Title,
 					Position:         updatedMenuCategory.Position,
@@ -259,7 +259,7 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 					CreatedAt:        updatedMenuCategory.CreatedAt,
 					UpdatedAt:        updatedMenuCategory.UpdatedAt,
 				},
-				EventChangedFields: ceng_utils.DiffStructs(currentMenuCategory, updatedMenuCategory),
+				EventChangedFields: hueat_utils.DiffStructs(currentMenuCategory, updatedMenuCategory),
 			},
 		}); err != nil {
 			return err
@@ -271,12 +271,12 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 			if updatedEntity.ID == updatedMenuCategory.ID {
 				continue
 			}
-			if event, err := s.pubSubAgent.Persist(tx, ceng_pubsub.TopicMenuCategoryV1, ceng_pubsub.PubSubMessage{
-				Message: ceng_pubsub.PubSubEvent{
+			if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuCategoryV1, hueat_pubsub.PubSubMessage{
+				Message: hueat_pubsub.PubSubEvent{
 					EventID:   uuid.New(),
 					EventTime: time.Now(),
-					EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
-					EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
+					EventType: hueat_pubsub.MenuCategoryUpdatedEvent,
+					EventEntity: &hueat_pubsub.MenuCategoryEventEntity{
 						ID:               updatedEntity.ID,
 						Title:            updatedEntity.Title,
 						Position:         updatedEntity.Position,
@@ -308,31 +308,31 @@ func (s menuCategoryService) updateMenuCategory(ctx *gin.Context, input updateMe
 
 func (s menuCategoryService) deleteMenuCategory(ctx *gin.Context, input deleteMenuCategoryInputDto) (menuCategoryEntity, error) {
 	var currentMenuCategory menuCategoryEntity
-	eventsToPublish := []ceng_pubsub.EventToPublish{}
+	eventsToPublish := []hueat_pubsub.EventToPublish{}
 	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
 		var updatedEntities []menuCategoryEntity
 		// Check if exists
 		menuCategoryId := uuid.MustParse(input.ID)
 		currentMenuCategory, err := s.repository.getMenuCategoryByID(tx, menuCategoryId, true)
 		if err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		}
-		if ceng_utils.IsEmpty(currentMenuCategory) {
+		if hueat_utils.IsEmpty(currentMenuCategory) {
 			return errMenuCategoryNotFound
 		}
 		s.repository.deleteMenuCategory(tx, currentMenuCategory)
 
 		if updatedEntities, err = s.repository.recalculateMenuCategorysPosition(tx); err != nil {
-			return ceng_err.ErrGeneric
+			return hueat_err.ErrGeneric
 		}
 
 		// Send an event of menuCategory deleted
-		if event, err := s.pubSubAgent.Persist(tx, ceng_pubsub.TopicMenuCategoryV1, ceng_pubsub.PubSubMessage{
-			Message: ceng_pubsub.PubSubEvent{
+		if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuCategoryV1, hueat_pubsub.PubSubMessage{
+			Message: hueat_pubsub.PubSubEvent{
 				EventID:   uuid.New(),
 				EventTime: time.Now(),
-				EventType: ceng_pubsub.MenuCategoryDeletedEvent,
-				EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
+				EventType: hueat_pubsub.MenuCategoryDeletedEvent,
+				EventEntity: &hueat_pubsub.MenuCategoryEventEntity{
 					ID:               currentMenuCategory.ID,
 					Title:            currentMenuCategory.Title,
 					Position:         currentMenuCategory.Position,
@@ -344,7 +344,7 @@ func (s menuCategoryService) deleteMenuCategory(ctx *gin.Context, input deleteMe
 					CreatedAt:        currentMenuCategory.CreatedAt,
 					UpdatedAt:        currentMenuCategory.UpdatedAt,
 				},
-				EventChangedFields: ceng_utils.DiffStructs(currentMenuCategory, menuCategoryEntity{}),
+				EventChangedFields: hueat_utils.DiffStructs(currentMenuCategory, menuCategoryEntity{}),
 			},
 		}); err != nil {
 			return err
@@ -353,12 +353,12 @@ func (s menuCategoryService) deleteMenuCategory(ctx *gin.Context, input deleteMe
 		}
 		// For the list of updated entities in Position, send events
 		for _, updatedEntity := range updatedEntities {
-			if event, err := s.pubSubAgent.Persist(tx, ceng_pubsub.TopicMenuCategoryV1, ceng_pubsub.PubSubMessage{
-				Message: ceng_pubsub.PubSubEvent{
+			if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuCategoryV1, hueat_pubsub.PubSubMessage{
+				Message: hueat_pubsub.PubSubEvent{
 					EventID:   uuid.New(),
 					EventTime: time.Now(),
-					EventType: ceng_pubsub.MenuCategoryUpdatedEvent,
-					EventEntity: &ceng_pubsub.MenuCategoryEventEntity{
+					EventType: hueat_pubsub.MenuCategoryUpdatedEvent,
+					EventEntity: &hueat_pubsub.MenuCategoryEventEntity{
 						ID:               updatedEntity.ID,
 						Title:            updatedEntity.Title,
 						Position:         updatedEntity.Position,
