@@ -1,0 +1,5 @@
+ALTER TABLE "hueat_printer"
+ADD COLUMN "inside" BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN "outside" BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE "hueat_printer" DROP CONSTRAINT "idx_hueat_printer_title";

@@ -81,7 +81,7 @@ SELECT
     t.name AS table_name,
     t.created_at AS table_created_at,
     p.id AS printer_id,
-    p.title AS printer_title,
+    (SELECT cfg.config_value FROM hueat_config cfg WHERE cfg.config_key = 'pricedOrderPrinterTitle') AS printer_title,
     p.url AS printer_url,
     MIN(c.id) AS course_id,
     0 AS course_number, 
@@ -97,10 +97,11 @@ JOIN hueat_course c ON c.order_id = o.id
 JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
 JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
-JOIN hueat_printer p ON p.title = 'PRECONTO' AND (
-    (t.inside = TRUE  AND p.inside = TRUE)
-    OR (t.inside = FALSE AND p.outside = TRUE)
+JOIN hueat_config cfg ON (
+    (t.inside = TRUE AND cfg.config_key = 'pricedOrderPrinterInsideID')
+    OR (t.inside = FALSE AND cfg.config_key = 'pricedOrderPrinterOutsideID')
 )
+JOIN hueat_printer p ON p.id = cfg.config_value
 LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 GROUP BY
@@ -130,7 +131,7 @@ SELECT
     t.created_at AS table_created_at,
     t.payment_method as table_payment,
     p.id AS printer_id,
-    p.title AS printer_title,
+    (SELECT cfg.config_value FROM hueat_config cfg WHERE cfg.config_key = 'totalPricePaymentPrinterTitle') AS printer_title,
     p.url AS printer_url,
     SUM(cs.quantity * COALESCE(mo.price, mi.price)) AS price_total
 FROM hueat_order o
@@ -140,10 +141,11 @@ JOIN hueat_course c ON c.order_id = o.id
 JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
 JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
-JOIN hueat_printer p ON p.title = 'PAGAMENTO' AND (
-    (t.inside = TRUE  AND p.inside = TRUE)
-    OR (t.inside = FALSE AND p.outside = TRUE)
+JOIN hueat_config cfg ON (
+    (t.inside = TRUE AND cfg.config_key = 'totalPricePaymentPrinterInsideID')
+    OR (t.inside = FALSE AND cfg.config_key = 'totalPricePaymentPrinterOutsideID')
 )
+JOIN hueat_printer p ON p.id = cfg.config_value
 LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
 AND p.active = true
