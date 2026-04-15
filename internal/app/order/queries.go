@@ -23,8 +23,8 @@ JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
 JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
 JOIN hueat_printer p ON  (
-    (t.inside = TRUE AND p.id = mc.printer_inside_id)
-    OR (t.inside = FALSE AND p.id = mc.printer_outside_id)
+    (t.inside = TRUE AND p.id = mi.printer_inside_id)
+    OR (t.inside = FALSE AND p.id = mi.printer_outside_id)
 )
 LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
@@ -60,8 +60,8 @@ JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
 JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
 JOIN hueat_printer p ON  (
-    (t.inside = TRUE AND p.id = mc.printer_inside_id)
-    OR (t.inside = FALSE AND p.id = mc.printer_outside_id)
+    (t.inside = TRUE AND p.id = mi.printer_inside_id)
+    OR (t.inside = FALSE AND p.id = mi.printer_outside_id)
 )
 LEFT JOIN hueat_menu_option mo ON mo.id = cs.menu_option_id
 WHERE o.table_id = $1
@@ -140,7 +140,6 @@ JOIN hueat_user u ON t.user_id = u.id
 JOIN hueat_course c ON c.order_id = o.id
 JOIN hueat_course_selection cs ON cs.course_id = c.id AND cs.quantity > 0
 JOIN hueat_menu_item mi ON mi.id = cs.menu_item_id
-JOIN hueat_menu_category mc ON mc.id = mi.menu_category_id
 JOIN hueat_config cfg ON (
     (t.inside = TRUE AND cfg.config_key = 'totalPricePaymentPrinterInsideID')
     OR (t.inside = FALSE AND cfg.config_key = 'totalPricePaymentPrinterOutsideID')
