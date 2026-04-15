@@ -16,15 +16,17 @@ func (r listMenuOptionsInputDto) validate() error {
 }
 
 type createMenuOptionInputDto struct {
-	MenuItemId string `uri:"menuItemId"`
-	Title      string `json:"title"`
-	Price      int64  `json:"price"`
+	MenuItemId   string `uri:"menuItemId"`
+	Title        string `json:"title"`
+	TitleDisplay string `json:"TitleDisplay"`
+	Price        int64  `json:"price"`
 }
 
 func (r createMenuOptionInputDto) validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.MenuItemId, validation.Required, is.UUID),
 		validation.Field(&r.Title, validation.Required, validation.Length(1, 255)),
+		validation.Field(&r.TitleDisplay, validation.Required, validation.Length(1, 255)),
 		validation.Field(&r.Price, validation.Required, validation.Min(1), validation.Max(10000)),
 	)
 }
@@ -40,19 +42,21 @@ func (r getMenuOptionInputDto) validate() error {
 }
 
 type updateMenuOptionInputDto struct {
-	ID       string  `uri:"menuOptionId"`
-	Title    *string `json:"title"`
-	Position *int64  `json:"position"`
-	Active   *bool   `json:"active"`
-	Inside   *bool   `json:"inside"`
-	Outside  *bool   `json:"outside"`
-	Price    *int64  `json:"price"`
+	ID           string  `uri:"menuOptionId"`
+	Title        *string `json:"title"`
+	TitleDisplay *string `json:"TitleDisplay"`
+	Position     *int64  `json:"position"`
+	Active       *bool   `json:"active"`
+	Inside       *bool   `json:"inside"`
+	Outside      *bool   `json:"outside"`
+	Price        *int64  `json:"price"`
 }
 
 func (r updateMenuOptionInputDto) validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID, validation.Required, is.UUID),
 		validation.Field(&r.Title, validation.NilOrNotEmpty, validation.Length(1, 255)),
+		validation.Field(&r.TitleDisplay, validation.NilOrNotEmpty, validation.Length(1, 255)),
 		validation.Field(&r.Position, validation.NilOrNotEmpty, validation.Min(1)),
 		validation.Field(&r.Active, validation.In(true, false)),
 		validation.Field(&r.Inside, validation.In(true, false)),

@@ -62,7 +62,6 @@ func (s menuItemService) getMenuItemByID(ctx *gin.Context, input getMenuItemInpu
 }
 
 func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemInputDto) (menuItemEntity, error) {
-	menuCategoryId := uuid.MustParse(input.MenuCategoryId)
 	menuCategoryID := uuid.MustParse(input.MenuCategoryId)
 	if input.PrinterInsideID != nil {
 		printerId := uuid.MustParse(*input.PrinterInsideID)
@@ -89,9 +88,10 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 	maxValue := int64(math.MaxInt64)
 	newMenuItem := menuItemEntity{
 		ID:               uuid.New(),
-		MenuCategoryID:   menuCategoryId,
+		MenuCategoryID:   menuCategoryID,
 		Position:         maxValue,
 		Title:            input.Title,
+		TitleDisplay:     input.TitleDisplay,
 		Active:           hueat_utils.BoolPtr(false),
 		Inside:           hueat_utils.BoolPtr(true),
 		Outside:          hueat_utils.BoolPtr(true),
@@ -110,7 +110,7 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 			return errMenuItemSameTitleAlreadyExists
 		} else if _, err = s.repository.saveMenuItem(tx, newMenuItem, hueat_db.Create); err != nil {
 			return hueat_err.ErrGeneric
-		} else if updatedEntities, err = s.repository.recalculateMenuItemsPosition(tx, menuCategoryId); err != nil {
+		} else if updatedEntities, err = s.repository.recalculateMenuItemsPosition(tx, menuCategoryID); err != nil {
 			return hueat_err.ErrGeneric
 		} else if newMenuItem, err = s.repository.getMenuItemByID(tx, newMenuItem.ID, false); err != nil {
 			return hueat_err.ErrGeneric
@@ -124,6 +124,7 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 				EventEntity: &hueat_pubsub.MenuItemEventEntity{
 					ID:               newMenuItem.ID,
 					Title:            newMenuItem.Title,
+					TitleDisplay:     newMenuItem.TitleDisplay,
 					Position:         newMenuItem.Position,
 					Active:           newMenuItem.Active,
 					Inside:           newMenuItem.Inside,
@@ -155,6 +156,7 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 						ID:               updatedEntity.ID,
 						MenuCategoryID:   updatedEntity.MenuCategoryID,
 						Title:            updatedEntity.Title,
+						TitleDisplay:     updatedEntity.TitleDisplay,
 						Position:         updatedEntity.Position,
 						Active:           updatedEntity.Active,
 						Inside:           updatedEntity.Inside,
@@ -226,6 +228,9 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 			}
 			updatedMenuItem.Title = *input.Title
 		}
+		if input.TitleDisplay != nil {
+			updatedMenuItem.TitleDisplay = *input.TitleDisplay
+		}
 		if input.Active != nil {
 			updatedMenuItem.Active = input.Active
 		}
@@ -272,6 +277,7 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 					ID:               updatedMenuItem.ID,
 					MenuCategoryID:   updatedMenuItem.MenuCategoryID,
 					Title:            updatedMenuItem.Title,
+					TitleDisplay:     updatedMenuItem.TitleDisplay,
 					Position:         updatedMenuItem.Position,
 					Active:           updatedMenuItem.Active,
 					Inside:           updatedMenuItem.Inside,
@@ -303,6 +309,7 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 						ID:               updatedEntity.ID,
 						MenuCategoryID:   updatedEntity.MenuCategoryID,
 						Title:            updatedEntity.Title,
+						TitleDisplay:     updatedEntity.TitleDisplay,
 						Position:         updatedEntity.Position,
 						Active:           updatedEntity.Active,
 						Inside:           updatedEntity.Inside,
@@ -359,6 +366,7 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 					ID:               currentMenuItem.ID,
 					MenuCategoryID:   currentMenuItem.MenuCategoryID,
 					Title:            currentMenuItem.Title,
+					TitleDisplay:     currentMenuItem.TitleDisplay,
 					Position:         currentMenuItem.Position,
 					Active:           currentMenuItem.Active,
 					Inside:           currentMenuItem.Inside,
@@ -387,6 +395,7 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 						ID:               updatedEntity.ID,
 						MenuCategoryID:   updatedEntity.MenuCategoryID,
 						Title:            updatedEntity.Title,
+						TitleDisplay:     updatedEntity.TitleDisplay,
 						Position:         updatedEntity.Position,
 						Active:           updatedEntity.Active,
 						Inside:           updatedEntity.Inside,

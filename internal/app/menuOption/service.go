@@ -4,12 +4,12 @@ import (
 	"math"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/hueat/backend/internal/pkg/hueat_err"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 	"github.com/hueat/backend/internal/pkg/hueat_utils"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -62,7 +62,6 @@ func (s menuOptionService) getMenuOptionByID(ctx *gin.Context, input getMenuOpti
 }
 
 func (s menuOptionService) createMenuOption(ctx *gin.Context, input createMenuOptionInputDto) (menuOptionEntity, error) {
-	menuItemId := uuid.MustParse(input.MenuItemId)
 	menuItemID := uuid.MustParse(input.MenuItemId)
 	if exists, err := s.repository.checkMenuItemExists(s.storage, menuItemID); err != nil {
 		return menuOptionEntity{}, hueat_err.ErrGeneric
@@ -72,16 +71,17 @@ func (s menuOptionService) createMenuOption(ctx *gin.Context, input createMenuOp
 	now := time.Now()
 	maxValue := int64(math.MaxInt64)
 	newMenuOption := menuOptionEntity{
-		ID:         uuid.New(),
-		MenuItemID: menuItemId,
-		Position:   maxValue,
-		Title:      input.Title,
-		Active:     hueat_utils.BoolPtr(false),
-		Inside:     hueat_utils.BoolPtr(true),
-		Outside:    hueat_utils.BoolPtr(true),
-		Price:      input.Price,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		ID:           uuid.New(),
+		MenuItemID:   menuItemID,
+		Position:     maxValue,
+		Title:        input.Title,
+		TitleDisplay: input.TitleDisplay,
+		Active:       hueat_utils.BoolPtr(false),
+		Inside:       hueat_utils.BoolPtr(true),
+		Outside:      hueat_utils.BoolPtr(true),
+		Price:        input.Price,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 	eventsToPublish := []hueat_pubsub.EventToPublish{}
 	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
@@ -92,7 +92,7 @@ func (s menuOptionService) createMenuOption(ctx *gin.Context, input createMenuOp
 			return errMenuOptionSameTitleAlreadyExists
 		} else if _, err = s.repository.saveMenuOption(tx, newMenuOption, hueat_db.Create); err != nil {
 			return hueat_err.ErrGeneric
-		} else if updatedEntities, err = s.repository.recalculateMenuOptionsPosition(tx, menuItemId); err != nil {
+		} else if updatedEntities, err = s.repository.recalculateMenuOptionsPosition(tx, menuItemID); err != nil {
 			return hueat_err.ErrGeneric
 		} else if newMenuOption, err = s.repository.getMenuOptionByID(tx, newMenuOption.ID, false); err != nil {
 			return hueat_err.ErrGeneric
@@ -104,15 +104,16 @@ func (s menuOptionService) createMenuOption(ctx *gin.Context, input createMenuOp
 				EventTime: time.Now(),
 				EventType: hueat_pubsub.MenuOptionCreatedEvent,
 				EventEntity: &hueat_pubsub.MenuOptionEventEntity{
-					ID:        newMenuOption.ID,
-					Title:     newMenuOption.Title,
-					Position:  newMenuOption.Position,
-					Active:    newMenuOption.Active,
-					Inside:    newMenuOption.Inside,
-					Outside:   newMenuOption.Outside,
-					Price:     newMenuOption.Price,
-					CreatedAt: newMenuOption.CreatedAt,
-					UpdatedAt: newMenuOption.UpdatedAt,
+					ID:           newMenuOption.ID,
+					Title:        newMenuOption.Title,
+					TitleDisplay: newMenuOption.TitleDisplay,
+					Position:     newMenuOption.Position,
+					Active:       newMenuOption.Active,
+					Inside:       newMenuOption.Inside,
+					Outside:      newMenuOption.Outside,
+					Price:        newMenuOption.Price,
+					CreatedAt:    newMenuOption.CreatedAt,
+					UpdatedAt:    newMenuOption.UpdatedAt,
 				},
 				EventChangedFields: hueat_utils.DiffStructs(menuOptionEntity{}, newMenuOption),
 			},
@@ -132,16 +133,17 @@ func (s menuOptionService) createMenuOption(ctx *gin.Context, input createMenuOp
 					EventTime: time.Now(),
 					EventType: hueat_pubsub.MenuOptionUpdatedEvent,
 					EventEntity: &hueat_pubsub.MenuOptionEventEntity{
-						ID:         updatedEntity.ID,
-						MenuItemID: updatedEntity.MenuItemID,
-						Title:      updatedEntity.Title,
-						Position:   updatedEntity.Position,
-						Active:     updatedEntity.Active,
-						Inside:     updatedEntity.Inside,
-						Outside:    updatedEntity.Outside,
-						Price:      updatedEntity.Price,
-						CreatedAt:  updatedEntity.CreatedAt,
-						UpdatedAt:  updatedEntity.UpdatedAt,
+						ID:           updatedEntity.ID,
+						MenuItemID:   updatedEntity.MenuItemID,
+						Title:        updatedEntity.Title,
+						TitleDisplay: updatedEntity.TitleDisplay,
+						Position:     updatedEntity.Position,
+						Active:       updatedEntity.Active,
+						Inside:       updatedEntity.Inside,
+						Outside:      updatedEntity.Outside,
+						Price:        updatedEntity.Price,
+						CreatedAt:    updatedEntity.CreatedAt,
+						UpdatedAt:    updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},
@@ -188,6 +190,9 @@ func (s menuOptionService) updateMenuOption(ctx *gin.Context, input updateMenuOp
 			}
 			updatedMenuOption.Title = *input.Title
 		}
+		if input.TitleDisplay != nil {
+			updatedMenuOption.TitleDisplay = *input.TitleDisplay
+		}
 		if input.Active != nil {
 			updatedMenuOption.Active = input.Active
 		}
@@ -225,16 +230,17 @@ func (s menuOptionService) updateMenuOption(ctx *gin.Context, input updateMenuOp
 				EventTime: time.Now(),
 				EventType: hueat_pubsub.MenuOptionUpdatedEvent,
 				EventEntity: &hueat_pubsub.MenuOptionEventEntity{
-					ID:         updatedMenuOption.ID,
-					MenuItemID: updatedMenuOption.MenuItemID,
-					Title:      updatedMenuOption.Title,
-					Position:   updatedMenuOption.Position,
-					Active:     updatedMenuOption.Active,
-					Inside:     updatedMenuOption.Inside,
-					Outside:    updatedMenuOption.Outside,
-					Price:      updatedMenuOption.Price,
-					CreatedAt:  updatedMenuOption.CreatedAt,
-					UpdatedAt:  updatedMenuOption.UpdatedAt,
+					ID:           updatedMenuOption.ID,
+					MenuItemID:   updatedMenuOption.MenuItemID,
+					Title:        updatedMenuOption.Title,
+					TitleDisplay: updatedMenuOption.TitleDisplay,
+					Position:     updatedMenuOption.Position,
+					Active:       updatedMenuOption.Active,
+					Inside:       updatedMenuOption.Inside,
+					Outside:      updatedMenuOption.Outside,
+					Price:        updatedMenuOption.Price,
+					CreatedAt:    updatedMenuOption.CreatedAt,
+					UpdatedAt:    updatedMenuOption.UpdatedAt,
 				},
 				EventChangedFields: hueat_utils.DiffStructs(currentMenuOption, updatedMenuOption),
 			},
@@ -254,16 +260,17 @@ func (s menuOptionService) updateMenuOption(ctx *gin.Context, input updateMenuOp
 					EventTime: time.Now(),
 					EventType: hueat_pubsub.MenuOptionUpdatedEvent,
 					EventEntity: &hueat_pubsub.MenuOptionEventEntity{
-						ID:         updatedEntity.ID,
-						MenuItemID: updatedEntity.MenuItemID,
-						Title:      updatedEntity.Title,
-						Position:   updatedEntity.Position,
-						Active:     updatedEntity.Active,
-						Inside:     updatedEntity.Inside,
-						Outside:    updatedEntity.Outside,
-						Price:      updatedEntity.Price,
-						CreatedAt:  updatedEntity.CreatedAt,
-						UpdatedAt:  updatedEntity.UpdatedAt,
+						ID:           updatedEntity.ID,
+						MenuItemID:   updatedEntity.MenuItemID,
+						Title:        updatedEntity.Title,
+						TitleDisplay: updatedEntity.TitleDisplay,
+						Position:     updatedEntity.Position,
+						Active:       updatedEntity.Active,
+						Inside:       updatedEntity.Inside,
+						Outside:      updatedEntity.Outside,
+						Price:        updatedEntity.Price,
+						CreatedAt:    updatedEntity.CreatedAt,
+						UpdatedAt:    updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},
@@ -308,16 +315,17 @@ func (s menuOptionService) deleteMenuOption(ctx *gin.Context, input deleteMenuOp
 				EventTime: time.Now(),
 				EventType: hueat_pubsub.MenuOptionDeletedEvent,
 				EventEntity: &hueat_pubsub.MenuOptionEventEntity{
-					ID:         currentMenuOption.ID,
-					MenuItemID: currentMenuOption.MenuItemID,
-					Title:      currentMenuOption.Title,
-					Position:   currentMenuOption.Position,
-					Active:     currentMenuOption.Active,
-					Inside:     currentMenuOption.Inside,
-					Outside:    currentMenuOption.Outside,
-					Price:      currentMenuOption.Price,
-					CreatedAt:  currentMenuOption.CreatedAt,
-					UpdatedAt:  currentMenuOption.UpdatedAt,
+					ID:           currentMenuOption.ID,
+					MenuItemID:   currentMenuOption.MenuItemID,
+					Title:        currentMenuOption.Title,
+					TitleDisplay: currentMenuOption.TitleDisplay,
+					Position:     currentMenuOption.Position,
+					Active:       currentMenuOption.Active,
+					Inside:       currentMenuOption.Inside,
+					Outside:      currentMenuOption.Outside,
+					Price:        currentMenuOption.Price,
+					CreatedAt:    currentMenuOption.CreatedAt,
+					UpdatedAt:    currentMenuOption.UpdatedAt,
 				},
 				EventChangedFields: hueat_utils.DiffStructs(currentMenuOption, menuOptionEntity{}),
 			},
@@ -334,15 +342,16 @@ func (s menuOptionService) deleteMenuOption(ctx *gin.Context, input deleteMenuOp
 					EventTime: time.Now(),
 					EventType: hueat_pubsub.MenuOptionUpdatedEvent,
 					EventEntity: &hueat_pubsub.MenuOptionEventEntity{
-						ID:         updatedEntity.ID,
-						MenuItemID: updatedEntity.MenuItemID,
-						Title:      updatedEntity.Title,
-						Position:   updatedEntity.Position,
-						Active:     updatedEntity.Active,
-						Inside:     updatedEntity.Inside,
-						Outside:    updatedEntity.Outside,
-						CreatedAt:  updatedEntity.CreatedAt,
-						UpdatedAt:  updatedEntity.UpdatedAt,
+						ID:           updatedEntity.ID,
+						MenuItemID:   updatedEntity.MenuItemID,
+						Title:        updatedEntity.Title,
+						TitleDisplay: updatedEntity.TitleDisplay,
+						Position:     updatedEntity.Position,
+						Active:       updatedEntity.Active,
+						Inside:       updatedEntity.Inside,
+						Outside:      updatedEntity.Outside,
+						CreatedAt:    updatedEntity.CreatedAt,
+						UpdatedAt:    updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},

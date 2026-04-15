@@ -7,14 +7,15 @@ import (
 )
 
 type menuCategoryModel struct {
-	ID        uuid.UUID `gorm:"primaryKey;column:id;type:varchar(36)"`
-	Title     string    `gorm:"column:title;type:varchar(255)"`
-	Position  int64     `gorm:"column:position;type:bigint"`
-	Active    *bool     `gorm:"column:active;type:boolean"`
-	Inside    *bool     `gorm:"column:inside;type:boolean"`
-	Outside   *bool     `gorm:"column:outside;type:boolean"`
-	CreatedAt time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime:false"`
-	UpdatedAt time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime:false"`
+	ID           uuid.UUID `gorm:"primaryKey;column:id;type:varchar(36)"`
+	Title        string    `gorm:"column:title;type:varchar(255)"`
+	TitleDisplay string    `gorm:"column:title_display;type:varchar(255)"`
+	Position     int64     `gorm:"column:position;type:bigint"`
+	Active       *bool     `gorm:"column:active;type:boolean"`
+	Inside       *bool     `gorm:"column:inside;type:boolean"`
+	Outside      *bool     `gorm:"column:outside;type:boolean"`
+	CreatedAt    time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime:false"`
+	UpdatedAt    time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime:false"`
 }
 
 func (m menuCategoryModel) TableName() string {

@@ -6,12 +6,14 @@ import (
 )
 
 type createMenuCategoryInputDto struct {
-	Title string `json:"title"`
+	Title        string `json:"title"`
+	TitleDisplay string `json:"titleDisplay"`
 }
 
 func (r createMenuCategoryInputDto) validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Title, validation.Required, validation.Length(1, 255)),
+		validation.Field(&r.TitleDisplay, validation.Required, validation.Length(1, 255)),
 	)
 }
 
@@ -26,18 +28,20 @@ func (r getMenuCategoryInputDto) validate() error {
 }
 
 type updateMenuCategoryInputDto struct {
-	ID       string  `uri:"menuCategoryId"`
-	Title    *string `json:"title"`
-	Position *int64  `json:"position"`
-	Active   *bool   `json:"active"`
-	Inside   *bool   `json:"inside"`
-	Outside  *bool   `json:"outside"`
+	ID           string  `uri:"menuCategoryId"`
+	Title        *string `json:"title"`
+	TitleDisplay *string `json:"titleDisplay"`
+	Position     *int64  `json:"position"`
+	Active       *bool   `json:"active"`
+	Inside       *bool   `json:"inside"`
+	Outside      *bool   `json:"outside"`
 }
 
 func (r updateMenuCategoryInputDto) validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID, validation.Required, is.UUID),
 		validation.Field(&r.Title, validation.NilOrNotEmpty, validation.Length(1, 255)),
+		validation.Field(&r.TitleDisplay, validation.NilOrNotEmpty, validation.Length(1, 255)),
 		validation.Field(&r.Position, validation.NilOrNotEmpty, validation.Min(1)),
 		validation.Field(&r.Active, validation.In(true, false)),
 		validation.Field(&r.Inside, validation.In(true, false)),

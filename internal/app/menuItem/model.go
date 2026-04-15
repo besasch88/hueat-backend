@@ -18,6 +18,7 @@ type menuItemModel struct {
 	ID               uuid.UUID  `gorm:"primaryKey;column:id;type:varchar(36)"`
 	MenuCategoryID   uuid.UUID  `gorm:"column:menu_category_id;type:varchar(36)"`
 	Title            string     `gorm:"column:title;type:varchar(255)"`
+	TitleDisplay     string     `gorm:"column:title_display;type:varchar(255)"`
 	Position         int64      `gorm:"column:position;type:bigint"`
 	Active           *bool      `gorm:"column:active;type:boolean"`
 	Inside           *bool      `gorm:"column:inside;type:boolean"`
