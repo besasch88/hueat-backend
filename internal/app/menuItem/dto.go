@@ -16,9 +16,11 @@ func (r listMenuItemsInputDto) validate() error {
 }
 
 type createMenuItemInputDto struct {
-	MenuCategoryId string `uri:"menuCategoryId"`
-	Title          string `json:"title"`
-	Price          int64  `json:"price"`
+	MenuCategoryId   string  `uri:"menuCategoryId"`
+	Title            string  `json:"title"`
+	Price            int64   `json:"price"`
+	PrinterInsideID  *string `json:"printerInsideId"`
+	PrinterOutsideID *string `json:"printerOutsideId"`
 }
 
 func (r createMenuItemInputDto) validate() error {
@@ -26,6 +28,8 @@ func (r createMenuItemInputDto) validate() error {
 		validation.Field(&r.MenuCategoryId, validation.Required, is.UUID),
 		validation.Field(&r.Title, validation.Required, validation.Length(1, 255)),
 		validation.Field(&r.Price, validation.Required, validation.Min(1), validation.Max(10000)),
+		validation.Field(&r.PrinterInsideID, is.UUID),
+		validation.Field(&r.PrinterOutsideID, is.UUID),
 	)
 }
 
@@ -40,13 +44,15 @@ func (r getMenuItemInputDto) validate() error {
 }
 
 type updateMenuItemInputDto struct {
-	ID       string  `uri:"menuItemId"`
-	Title    *string `json:"title"`
-	Position *int64  `json:"position"`
-	Active   *bool   `json:"active"`
-	Inside   *bool   `json:"inside"`
-	Outside  *bool   `json:"outside"`
-	Price    *int64  `json:"price"`
+	ID               string  `uri:"menuItemId"`
+	Title            *string `json:"title"`
+	Position         *int64  `json:"position"`
+	Active           *bool   `json:"active"`
+	Inside           *bool   `json:"inside"`
+	Outside          *bool   `json:"outside"`
+	Price            *int64  `json:"price"`
+	PrinterInsideID  *string `json:"printerInsideId"`
+	PrinterOutsideID *string `json:"printerOutsideId"`
 }
 
 func (r updateMenuItemInputDto) validate() error {
@@ -58,6 +64,8 @@ func (r updateMenuItemInputDto) validate() error {
 		validation.Field(&r.Inside, validation.In(true, false)),
 		validation.Field(&r.Outside, validation.In(true, false)),
 		validation.Field(&r.Price, validation.Min(1), validation.Max(10000)),
+		validation.Field(&r.PrinterInsideID, is.UUID),
+		validation.Field(&r.PrinterOutsideID, is.UUID),
 	)
 }
 

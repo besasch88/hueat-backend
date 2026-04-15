@@ -4,12 +4,12 @@ import (
 	"math"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/hueat/backend/internal/pkg/hueat_err"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 	"github.com/hueat/backend/internal/pkg/hueat_utils"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +64,22 @@ func (s menuItemService) getMenuItemByID(ctx *gin.Context, input getMenuItemInpu
 func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemInputDto) (menuItemEntity, error) {
 	menuCategoryId := uuid.MustParse(input.MenuCategoryId)
 	menuCategoryID := uuid.MustParse(input.MenuCategoryId)
+	if input.PrinterInsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterInsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuItemEntity{}, hueat_err.ErrGeneric
+		} else if !exists {
+			return menuItemEntity{}, errPrinterNotFound
+		}
+	}
+	if input.PrinterOutsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterOutsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuItemEntity{}, hueat_err.ErrGeneric
+		} else if !exists {
+			return menuItemEntity{}, errPrinterNotFound
+		}
+	}
 	if exists, err := s.repository.checkMenuCategoryExists(s.storage, menuCategoryID); err != nil {
 		return menuItemEntity{}, hueat_err.ErrGeneric
 	} else if !exists {
@@ -72,16 +88,18 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 	now := time.Now()
 	maxValue := int64(math.MaxInt64)
 	newMenuItem := menuItemEntity{
-		ID:             uuid.New(),
-		MenuCategoryID: menuCategoryId,
-		Position:       maxValue,
-		Title:          input.Title,
-		Active:         hueat_utils.BoolPtr(false),
-		Inside:         hueat_utils.BoolPtr(true),
-		Outside:        hueat_utils.BoolPtr(true),
-		Price:          input.Price,
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		ID:               uuid.New(),
+		MenuCategoryID:   menuCategoryId,
+		Position:         maxValue,
+		Title:            input.Title,
+		Active:           hueat_utils.BoolPtr(false),
+		Inside:           hueat_utils.BoolPtr(true),
+		Outside:          hueat_utils.BoolPtr(true),
+		Price:            input.Price,
+		PrinterInsideID:  hueat_utils.GetOptionalUUIDFromString(input.PrinterInsideID),
+		PrinterOutsideID: hueat_utils.GetOptionalUUIDFromString(input.PrinterOutsideID),
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 	eventsToPublish := []hueat_pubsub.EventToPublish{}
 	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
@@ -104,15 +122,17 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 				EventTime: time.Now(),
 				EventType: hueat_pubsub.MenuItemCreatedEvent,
 				EventEntity: &hueat_pubsub.MenuItemEventEntity{
-					ID:        newMenuItem.ID,
-					Title:     newMenuItem.Title,
-					Position:  newMenuItem.Position,
-					Active:    newMenuItem.Active,
-					Price:     newMenuItem.Price,
-					Inside:    newMenuItem.Inside,
-					Outside:   newMenuItem.Outside,
-					CreatedAt: newMenuItem.CreatedAt,
-					UpdatedAt: newMenuItem.UpdatedAt,
+					ID:               newMenuItem.ID,
+					Title:            newMenuItem.Title,
+					Position:         newMenuItem.Position,
+					Active:           newMenuItem.Active,
+					Inside:           newMenuItem.Inside,
+					Outside:          newMenuItem.Outside,
+					Price:            newMenuItem.Price,
+					PrinterInsideID:  newMenuItem.PrinterInsideID,
+					PrinterOutsideID: newMenuItem.PrinterOutsideID,
+					CreatedAt:        newMenuItem.CreatedAt,
+					UpdatedAt:        newMenuItem.UpdatedAt,
 				},
 				EventChangedFields: hueat_utils.DiffStructs(menuItemEntity{}, newMenuItem),
 			},
@@ -132,16 +152,18 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 					EventTime: time.Now(),
 					EventType: hueat_pubsub.MenuItemUpdatedEvent,
 					EventEntity: &hueat_pubsub.MenuItemEventEntity{
-						ID:             updatedEntity.ID,
-						MenuCategoryID: updatedEntity.MenuCategoryID,
-						Title:          updatedEntity.Title,
-						Position:       updatedEntity.Position,
-						Active:         updatedEntity.Active,
-						Inside:         updatedEntity.Inside,
-						Outside:        updatedEntity.Outside,
-						Price:          updatedEntity.Price,
-						CreatedAt:      updatedEntity.CreatedAt,
-						UpdatedAt:      updatedEntity.UpdatedAt,
+						ID:               updatedEntity.ID,
+						MenuCategoryID:   updatedEntity.MenuCategoryID,
+						Title:            updatedEntity.Title,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						Price:            updatedEntity.Price,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},
@@ -162,6 +184,22 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 }
 
 func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemInputDto) (menuItemEntity, error) {
+	if input.PrinterInsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterInsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuItemEntity{}, hueat_err.ErrGeneric
+		} else if !exists {
+			return menuItemEntity{}, errPrinterNotFound
+		}
+	}
+	if input.PrinterOutsideID != nil {
+		printerId := uuid.MustParse(*input.PrinterOutsideID)
+		if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+			return menuItemEntity{}, hueat_err.ErrGeneric
+		} else if !exists {
+			return menuItemEntity{}, errPrinterNotFound
+		}
+	}
 	now := time.Now()
 	var updatedMenuItem menuItemEntity
 	eventsToPublish := []hueat_pubsub.EventToPublish{}
@@ -200,6 +238,12 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 		if input.Price != nil {
 			updatedMenuItem.Price = *input.Price
 		}
+		if input.PrinterInsideID != nil {
+			updatedMenuItem.PrinterInsideID = hueat_utils.GetOptionalUUIDFromString(input.PrinterInsideID)
+		}
+		if input.PrinterOutsideID != nil {
+			updatedMenuItem.PrinterOutsideID = hueat_utils.GetOptionalUUIDFromString(input.PrinterOutsideID)
+		}
 		if input.Position != nil {
 			// If the step is moving in a lower position (e.g. from 10 to 3),
 			// we need to move it one step more, so that, the algorith to re-sort all steps correctly
@@ -225,16 +269,18 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 				EventTime: time.Now(),
 				EventType: hueat_pubsub.MenuItemUpdatedEvent,
 				EventEntity: &hueat_pubsub.MenuItemEventEntity{
-					ID:             updatedMenuItem.ID,
-					MenuCategoryID: updatedMenuItem.MenuCategoryID,
-					Title:          updatedMenuItem.Title,
-					Position:       updatedMenuItem.Position,
-					Active:         updatedMenuItem.Active,
-					Inside:         updatedMenuItem.Inside,
-					Outside:        updatedMenuItem.Outside,
-					Price:          updatedMenuItem.Price,
-					CreatedAt:      updatedMenuItem.CreatedAt,
-					UpdatedAt:      updatedMenuItem.UpdatedAt,
+					ID:               updatedMenuItem.ID,
+					MenuCategoryID:   updatedMenuItem.MenuCategoryID,
+					Title:            updatedMenuItem.Title,
+					Position:         updatedMenuItem.Position,
+					Active:           updatedMenuItem.Active,
+					Inside:           updatedMenuItem.Inside,
+					Outside:          updatedMenuItem.Outside,
+					Price:            updatedMenuItem.Price,
+					PrinterInsideID:  updatedMenuItem.PrinterInsideID,
+					PrinterOutsideID: updatedMenuItem.PrinterOutsideID,
+					CreatedAt:        updatedMenuItem.CreatedAt,
+					UpdatedAt:        updatedMenuItem.UpdatedAt,
 				},
 				EventChangedFields: hueat_utils.DiffStructs(currentMenuItem, updatedMenuItem),
 			},
@@ -254,16 +300,18 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 					EventTime: time.Now(),
 					EventType: hueat_pubsub.MenuItemUpdatedEvent,
 					EventEntity: &hueat_pubsub.MenuItemEventEntity{
-						ID:             updatedEntity.ID,
-						MenuCategoryID: updatedEntity.MenuCategoryID,
-						Title:          updatedEntity.Title,
-						Position:       updatedEntity.Position,
-						Active:         updatedEntity.Active,
-						Inside:         updatedEntity.Inside,
-						Outside:        updatedEntity.Outside,
-						Price:          updatedEntity.Price,
-						CreatedAt:      updatedEntity.CreatedAt,
-						UpdatedAt:      updatedEntity.UpdatedAt,
+						ID:               updatedEntity.ID,
+						MenuCategoryID:   updatedEntity.MenuCategoryID,
+						Title:            updatedEntity.Title,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						Price:            updatedEntity.Price,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},
@@ -308,16 +356,18 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 				EventTime: time.Now(),
 				EventType: hueat_pubsub.MenuItemDeletedEvent,
 				EventEntity: &hueat_pubsub.MenuItemEventEntity{
-					ID:             currentMenuItem.ID,
-					MenuCategoryID: currentMenuItem.MenuCategoryID,
-					Title:          currentMenuItem.Title,
-					Position:       currentMenuItem.Position,
-					Active:         currentMenuItem.Active,
-					Inside:         currentMenuItem.Inside,
-					Outside:        currentMenuItem.Outside,
-					Price:          currentMenuItem.Price,
-					CreatedAt:      currentMenuItem.CreatedAt,
-					UpdatedAt:      currentMenuItem.UpdatedAt,
+					ID:               currentMenuItem.ID,
+					MenuCategoryID:   currentMenuItem.MenuCategoryID,
+					Title:            currentMenuItem.Title,
+					Position:         currentMenuItem.Position,
+					Active:           currentMenuItem.Active,
+					Inside:           currentMenuItem.Inside,
+					Outside:          currentMenuItem.Outside,
+					Price:            currentMenuItem.Price,
+					PrinterInsideID:  currentMenuItem.PrinterInsideID,
+					PrinterOutsideID: currentMenuItem.PrinterOutsideID,
+					CreatedAt:        currentMenuItem.CreatedAt,
+					UpdatedAt:        currentMenuItem.UpdatedAt,
 				},
 				EventChangedFields: hueat_utils.DiffStructs(currentMenuItem, menuItemEntity{}),
 			},
@@ -334,15 +384,18 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 					EventTime: time.Now(),
 					EventType: hueat_pubsub.MenuItemUpdatedEvent,
 					EventEntity: &hueat_pubsub.MenuItemEventEntity{
-						ID:             updatedEntity.ID,
-						MenuCategoryID: updatedEntity.MenuCategoryID,
-						Title:          updatedEntity.Title,
-						Position:       updatedEntity.Position,
-						Active:         updatedEntity.Active,
-						Inside:         updatedEntity.Inside,
-						Outside:        updatedEntity.Outside,
-						CreatedAt:      updatedEntity.CreatedAt,
-						UpdatedAt:      updatedEntity.UpdatedAt,
+						ID:               updatedEntity.ID,
+						MenuCategoryID:   updatedEntity.MenuCategoryID,
+						Title:            updatedEntity.Title,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						Price:            updatedEntity.Price,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
 					EventChangedFields: []string{"Position", "UpdatedAt"},
 				},

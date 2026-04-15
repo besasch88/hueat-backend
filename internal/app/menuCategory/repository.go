@@ -3,15 +3,13 @@ package menuCategory
 import (
 	"fmt"
 
-	"github.com/hueat/backend/internal/pkg/hueat_db"
-	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/google/uuid"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type menuCategoryRepositoryInterface interface {
-	checkPrinterExists(tx *gorm.DB, printerID uuid.UUID) (bool, error)
 	listMenuCategories(tx *gorm.DB, forUpdate bool) ([]menuCategoryEntity, int64, error)
 	getMenuCategoryByID(tx *gorm.DB, menuCategoryID uuid.UUID, forUpdate bool) (menuCategoryEntity, error)
 	getMenuCategoryByTitle(tx *gorm.DB, menuCategoryTitle string, forUpdate bool) (menuCategoryEntity, error)
@@ -28,19 +26,6 @@ func newMenuCategoryRepository(relevanceThresholdConfig float64) menuCategoryRep
 	return menuCategoryRepository{
 		relevanceThresholdConfig: relevanceThresholdConfig,
 	}
-}
-
-func (r menuCategoryRepository) checkPrinterExists(tx *gorm.DB, printerID uuid.UUID) (bool, error) {
-	var model *printerModel
-	query := tx.Where("id = ?", printerID)
-	result := query.Limit(1).Find(&model)
-	if result.Error != nil {
-		return false, result.Error
-	}
-	if result.RowsAffected == 0 || hueat_utils.IsEmpty(model) {
-		return false, nil
-	}
-	return true, nil
 }
 
 func (r menuCategoryRepository) listMenuCategories(tx *gorm.DB, forUpdate bool) ([]menuCategoryEntity, int64, error) {
