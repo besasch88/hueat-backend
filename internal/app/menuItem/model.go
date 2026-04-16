@@ -26,6 +26,7 @@ type menuItemModel struct {
 	Price            int64      `gorm:"column:price;type:bigint"`
 	PrinterInsideID  *uuid.UUID `gorm:"column:printer_inside_id;type:varchar(36)"`
 	PrinterOutsideID *uuid.UUID `gorm:"column:printer_outside_id;type:varchar(36)"`
+	TableID          *uuid.UUID `gorm:"column:table_id;type:varchar(36)"`
 	CreatedAt        time.Time  `gorm:"column:created_at;type:timestamp;autoCreateTime:false"`
 	UpdatedAt        time.Time  `gorm:"column:updated_at;type:timestamp;autoUpdateTime:false"`
 }

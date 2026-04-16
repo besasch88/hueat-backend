@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/hueat/backend/internal/pkg/hueat_utils"
-	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 

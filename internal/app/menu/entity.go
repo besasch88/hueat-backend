@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"github.com/google/uuid"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 )
 
@@ -22,4 +23,9 @@ type menuCategory struct {
 
 type menu struct {
 	Categories []menuCategory `json:"categories"`
+}
+
+type tableEntity struct {
+	ID     uuid.UUID `json:"id"`
+	Inside *bool     `json:"inside"`
 }

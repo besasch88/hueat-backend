@@ -3,9 +3,9 @@ package order
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/hueat/backend/internal/pkg/hueat_utils"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -39,7 +39,7 @@ func (r orderRepository) checkTableExists(tx *gorm.DB, userID *uuid.UUID, tableI
 	var model *tableModel
 	query := tx.Where("id = ?", tableID)
 	if userID != nil {
-		query = query.Where("user_id = ?", userID)
+		query.Where("user_id = ?", userID)
 	}
 	result := query.Limit(1).Find(&model)
 	if result.Error != nil {

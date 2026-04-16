@@ -1,9 +1,10 @@
 package menu
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hueat/backend/internal/pkg/hueat_err"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
-	"github.com/gin-gonic/gin"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"gorm.io/gorm"
 )
 
@@ -26,15 +27,23 @@ func newMenuService(storage *gorm.DB, pubSubAgent *hueat_pubsub.PubSubAgent, rep
 }
 
 func (s menuService) getMenu(ctx *gin.Context, input getMenuInputDto) (menu, error) {
-	categories, _, err := s.repository.listMenuCategories(s.storage, input.Target, false)
+	targetTableID := hueat_utils.GetUUIDFromString(input.TableID)
+	table, err := s.repository.getTableByID(s.storage, targetTableID)
+	if err != nil {
+		return menu{}, hueat_err.ErrGeneric
+	}
+	if hueat_utils.IsEmpty(table) {
+		return menu{}, errTableNotFound
+	}
+	categories, _, err := s.repository.listMenuCategories(s.storage, *table.Inside, false)
 	if err != nil || categories == nil {
 		return menu{}, hueat_err.ErrGeneric
 	}
-	items, _, err := s.repository.listMenuItems(s.storage, input.Target, false)
+	items, _, err := s.repository.listMenuItems(s.storage, *table.Inside, targetTableID, false)
 	if err != nil || items == nil {
 		return menu{}, hueat_err.ErrGeneric
 	}
-	options, _, err := s.repository.listMenuOptions(s.storage, input.Target, false)
+	options, _, err := s.repository.listMenuOptions(s.storage, *table.Inside, false)
 	if err != nil || options == nil {
 		return menu{}, hueat_err.ErrGeneric
 	}
@@ -67,7 +76,6 @@ func (s menuService) getMenu(ctx *gin.Context, input getMenuInputDto) (menu, err
 			menuCategory.Items = append(menuCategory.Items, menuItem)
 		}
 		menu.Categories = append(menu.Categories, menuCategory)
-
 	}
 	return menu, nil
 }

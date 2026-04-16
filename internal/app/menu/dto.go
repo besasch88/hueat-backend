@@ -2,14 +2,15 @@ package menu
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 type getMenuInputDto struct {
-	Target string `form:"target"`
+	TableID string `uri:"tableId"`
 }
 
 func (r getMenuInputDto) validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.Target, validation.Required, validation.In("inside", "outside")),
+		validation.Field(&r.TableID, validation.Required, is.UUID),
 	)
 }

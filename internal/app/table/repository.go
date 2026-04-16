@@ -3,8 +3,8 @@ package table
 import (
 	"fmt"
 
-	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/google/uuid"
+	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -36,12 +36,12 @@ func (r tableRepository) listTables(tx *gorm.DB, userId *uuid.UUID, inside bool,
 	queryCount := tx.Model(tableModel{}).Where("inside = ?", inside)
 
 	if userId != nil {
-		query = query.Where("user_id = ?", userId)
-		queryCount = queryCount.Where("user_id = ?", userId)
+		query.Where("user_id = ?", userId)
+		queryCount.Where("user_id = ?", userId)
 	}
 	if includeClosed == nil || !*includeClosed {
-		query = query.Where("close = ?", false)
-		queryCount = queryCount.Where("close = ?", false)
+		query.Where("close = ?", false)
+		queryCount.Where("close = ?", false)
 	}
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
@@ -65,7 +65,7 @@ func (r tableRepository) getTableByID(tx *gorm.DB, tableID uuid.UUID, userId *uu
 	var model *tableModel
 	query := tx.Where("id = ?", tableID)
 	if userId != nil {
-		query = query.Where("user_id = ?", userId)
+		query.Where("user_id = ?", userId)
 	}
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})

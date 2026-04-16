@@ -46,6 +46,7 @@ type MenuItemEventEntity struct {
 	Price            int64      `json:"price"`
 	PrinterInsideID  *uuid.UUID `json:"printerInsideId"`
 	PrinterOutsideID *uuid.UUID `json:"printerOutsideId"`
+	TableID          *uuid.UUID `json:"tableId"`
 	CreatedAt        time.Time  `json:"createdAt"`
 	UpdatedAt        time.Time  `json:"updatedAt"`
 }

@@ -62,8 +62,8 @@ func (r menuItemRepository) listMenuItems(tx *gorm.DB, menuCategoryID uuid.UUID,
 	var order string
 
 	var models []*menuItemModel
-	query := tx.Model(menuItemModel{}).Where("menu_category_id = ?", menuCategoryID)
-	queryCount := tx.Model(menuItemModel{}).Where("menu_category_id = ?", menuCategoryID)
+	query := tx.Model(menuItemModel{}).Where("menu_category_id = ?", menuCategoryID).Where("table_id IS NULL")
+	queryCount := tx.Model(menuItemModel{}).Where("menu_category_id = ?", menuCategoryID).Where("table_id IS NULL")
 
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})

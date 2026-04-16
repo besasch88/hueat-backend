@@ -28,7 +28,7 @@ func newMenuRouter(service menuServiceInterface) menuRouter {
 // Implementation
 func (r menuRouter) register(router *gin.RouterGroup) {
 	router.GET(
-		"/menu",
+		"tables/:tableId/menu",
 		hueat_auth.AuthMiddleware([]string{hueat_auth.READ_MENU}),
 		hueat_timeout.TimeoutMiddleware(time.Duration(1)*time.Second),
 		func(ctx *gin.Context) {
@@ -45,6 +45,10 @@ func (r menuRouter) register(router *gin.RouterGroup) {
 			// Business Logic
 			item, err := r.service.getMenu(ctx, request)
 			// Errors and output handler
+			if err == errTableNotFound {
+				hueat_router.ReturnNotFoundError(ctx, err)
+				return
+			}
 			if err != nil {
 				zap.L().Error("Something went wrong", zap.String("service", "menu-router"), zap.Error(err))
 				hueat_router.ReturnGenericError(ctx)
