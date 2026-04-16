@@ -3,10 +3,10 @@ package order
 import (
 	"net"
 
-	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
-	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
+	"github.com/hueat/backend/internal/pkg/hueat_utils"
 	"github.com/justinmichaelvieira/escpos"
 	"gorm.io/gorm"
 )
@@ -215,11 +215,11 @@ func (s printService) printItems(items []orderDetailEntity) error {
 		}
 		// Now for each element, I can print them
 		if item.MenuOptionTitle != nil {
-			if err := s.printRepository.printItem(printer, item.Quantity, *item.MenuOptionTitle); err != nil {
+			if err := s.printRepository.printItem(printer, item.Quantity, *item.MenuOptionTitle, item.Note); err != nil {
 				return err
 			}
 		} else {
-			if err := s.printRepository.printItem(printer, item.Quantity, item.MenuItemTitle); err != nil {
+			if err := s.printRepository.printItem(printer, item.Quantity, item.MenuItemTitle, item.Note); err != nil {
 				return err
 			}
 		}

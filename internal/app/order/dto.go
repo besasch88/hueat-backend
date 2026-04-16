@@ -19,6 +19,7 @@ type updateCourseSelectionInputDto struct {
 	MenuItemID   string  `json:"menuItemId"`
 	MenuOptionID *string `json:"menuOptionId"`
 	Quantity     int64   `json:"quantity"`
+	Note         *string `json:"note"`
 }
 
 func (r updateCourseSelectionInputDto) validate() error {
@@ -26,6 +27,7 @@ func (r updateCourseSelectionInputDto) validate() error {
 		validation.Field(&r.MenuItemID, validation.Required, is.UUID),
 		validation.Field(&r.MenuOptionID, is.UUID),
 		validation.Field(&r.Quantity, validation.Min(1)),
+		validation.Field(&r.Note, validation.NilOrNotEmpty, validation.Length(1, 512)),
 	)
 }
 

@@ -5,18 +5,13 @@ meta {
 }
 
 get {
-  url: http://127.0.0.1:8001/api/v1/tables/{{firstUseCaseId}}
+  url: http://127.0.0.1:8001/api/v1/tables/{{firstTableId}}
   body: none
   auth: bearer
 }
 
 auth:bearer {
   token: {{accessToken}}
-}
-
-script:post-response {
-  bru.setVar("firstTableId", res.body?.item?.id);
-  
 }
 
 settings {

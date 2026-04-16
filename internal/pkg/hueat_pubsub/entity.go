@@ -96,6 +96,7 @@ type CourseSelectionEventEntity struct {
 	MenuItemID   uuid.UUID  `json:"menuItemId"`
 	MenuOptionID *uuid.UUID `json:"menuOptionId"`
 	Quantity     int64      `json:"quantity"`
+	Note         *string    `json:"note"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 }

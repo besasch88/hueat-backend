@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: http://127.0.0.1:8001/api/v1/menu/items/c5f2cd83-b2f1-4488-af02-1ef813cf7de4/options
+  url: http://127.0.0.1:8001/api/v1/menu/items/{{firstMenuItemId}}/options
   body: json
   auth: bearer
 }
@@ -17,6 +17,7 @@ auth:bearer {
 body:json {
   {
     "title": "new",
+    "titleDisplay": "new",
     "price": 200
   }
 }

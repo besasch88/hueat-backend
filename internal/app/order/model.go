@@ -51,6 +51,7 @@ type courseSelectionModel struct {
 	MenuItemID   uuid.UUID  `gorm:"column:menu_item_id;type:varchar(36)"`
 	MenuOptionID *uuid.UUID `gorm:"column:menu_option_id;type:varchar(36)"`
 	Quantity     int64      `gorm:"column:quantity;type:bigint"`
+	Note         *string    `gorm:"column:note;type:text"`
 	CreatedAt    time.Time  `gorm:"column:created_at;type:timestamp;autoCreateTime:false"`
 	UpdatedAt    time.Time  `gorm:"column:updated_at;type:timestamp;autoUpdateTime:false"`
 }
@@ -77,6 +78,7 @@ type orderDetailModel struct {
 	MenuOptionTitle *string   `gorm:"column:menu_option_title"`
 	MenuOptionPrice *int64    `gorm:"column:menu_option_price"`
 	Quantity        int64     `gorm:"column:quantity"`
+	Note            *string   `gorm:"column:note"`
 }
 
 func (m orderDetailModel) toEntity() orderDetailEntity {

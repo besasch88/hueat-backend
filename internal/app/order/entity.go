@@ -34,6 +34,7 @@ type orderDetailEntity struct {
 	MenuOptionTitle *string
 	MenuOptionPrice *int64
 	Quantity        int64
+	Note            *string
 }
 
 type paymentDetailEntity struct {

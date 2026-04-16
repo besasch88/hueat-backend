@@ -14,7 +14,8 @@ SELECT
     mi.price AS menu_item_price,
     mo.title AS menu_option_title,
     mo.price AS menu_option_price,
-    cs.quantity
+    cs.quantity,
+    cs.note
 FROM hueat_order o
 JOIN hueat_table t ON o.table_id = t.id
 JOIN hueat_user u ON t.user_id = u.id
@@ -51,7 +52,8 @@ SELECT
     mi.price AS menu_item_price,
     mo.title AS menu_option_title,
     mo.price AS menu_option_price,
-    cs.quantity
+    cs.quantity,
+    cs.note
 FROM hueat_order o
 JOIN hueat_table t ON o.table_id = t.id
 JOIN hueat_user u ON t.user_id = u.id

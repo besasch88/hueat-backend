@@ -1,0 +1,27 @@
+meta {
+  name: Print
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://127.0.0.1:8001/api/v1/tables/{{firstTableId}}/order/print
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "target": "order", //"order", "course", "bill", "payment"
+    "courseId": "{{firstCourseId}}" // Mandatory if target="course"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

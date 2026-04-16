@@ -1,0 +1,46 @@
+meta {
+  name: Update
+  type: http
+  seq: 2
+}
+
+put {
+  url: http://127.0.0.1:8001/api/v1/tables/{{firstTableId}}/order
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "courses": [
+      {
+        "id": "65aa539d-a753-4c97-b45b-a13a7f95fbd4",
+        "orderId": "b7005157-d284-4cc9-bc2d-5ab9c6d2efef",
+        "position": 1,
+        "createdAt": "2026-04-14T21:01:34.788179Z",
+        "updatedAt": "2026-04-14T21:01:34.788179Z",
+        "items": [
+          {
+            "id": "69356909-bc80-4e12-8298-c1b1536a30c5",
+            "courseId": "65aa539d-a753-4c97-b45b-a13a7f95fbd4",
+            "menuItemId": "f7a4aee8-e2d3-4308-827f-1dc589c4efcf",
+            "menuOptionId": "7a82a077-b7ea-49f9-aacf-99ec1415c342",
+            "quantity": 1,
+            "note": "Note here!",
+            "createdAt": "2026-04-15T19:52:09.800012Z",
+            "updatedAt": "2026-04-15T19:52:09.800012Z"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

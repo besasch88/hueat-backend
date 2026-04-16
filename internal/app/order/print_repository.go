@@ -16,7 +16,7 @@ type printRepositoryInterface interface {
 	printTableCreation(printer *escpos.Escpos, username string, date time.Time) error
 	printCourse(printer *escpos.Escpos, number int64) error
 	printLine(printer *escpos.Escpos) error
-	printItem(printer *escpos.Escpos, quantity int64, name string) error
+	printItem(printer *escpos.Escpos, quantity int64, name string, note *string) error
 	printItemAndPrice(printer *escpos.Escpos, quantity int64, name string, price int64) error
 	printTotalPrice(printer *escpos.Escpos, price int64) error
 	printRecipeCollection(printer *escpos.Escpos) error
@@ -81,10 +81,16 @@ func (r printRepository) printLine(printer *escpos.Escpos) error {
 	return nil
 }
 
-func (r printRepository) printItem(printer *escpos.Escpos, quantity int64, name string) error {
+func (r printRepository) printItem(printer *escpos.Escpos, quantity int64, name string, note *string) error {
 	_, err := printer.Bold(false).Reverse(false).Size(1, 2).Justify(escpos.JustifyLeft).Write(fmt.Sprintf("%2d x %s\n\n", quantity, name))
 	if err != nil {
 		return err
+	}
+	if note != nil {
+		_, err = printer.Bold(false).Reverse(false).Size(1, 1).Justify(escpos.JustifyLeft).Write(fmt.Sprintf("%s\n\n", *note))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

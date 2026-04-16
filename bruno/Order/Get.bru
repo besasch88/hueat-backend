@@ -1,11 +1,11 @@
 meta {
-  name: Create
+  name: Get
   type: http
-  seq: 3
+  seq: 1
 }
 
-post {
-  url: http://127.0.0.1:8001/api/v1/tables/{{firstTableId}}/courses
+get {
+  url: http://127.0.0.1:8001/api/v1/tables/{{firstTableId}}/order
   body: none
   auth: bearer
 }
@@ -15,7 +15,7 @@ auth:bearer {
 }
 
 script:post-response {
-  bru.setVar("firstCourseId", res.body?.item?.id);
+  bru.setVar("firstCourseId", res.body?.item.courses[0]?.id);
   
 }
 

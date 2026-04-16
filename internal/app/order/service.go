@@ -4,13 +4,13 @@ import (
 	"slices"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/hueat/backend/internal/pkg/hueat_auth"
 	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/hueat/backend/internal/pkg/hueat_err"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
 	"github.com/hueat/backend/internal/pkg/hueat_utils"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -235,6 +235,7 @@ func (s orderService) updateOrder(ctx *gin.Context, input updateOrderInputDto) (
 					MenuItemID:   hueat_utils.GetUUIDFromString(inputSelection.MenuItemID),
 					MenuOptionID: hueat_utils.GetOptionalUUIDFromString(inputSelection.MenuOptionID),
 					Quantity:     inputSelection.Quantity,
+					Note:         inputSelection.Note,
 					CreatedAt:    now,
 					UpdatedAt:    now,
 				}
