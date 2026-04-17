@@ -31,5 +31,6 @@ const (
 	READ_OTHER_TABLES    = "read-other-tables"
 	WRITE_OTHER_TABLES   = "write-other-tables"
 	READ_STATISTICS      = "read-statistics"
+	DELETE_STATISTICS    = "delete-statistics"
 	UPDATE_REFRESH_TOKEN = "update-refresh-token"
 )

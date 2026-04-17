@@ -1,0 +1,20 @@
+meta {
+  name: Delete
+  type: http
+  seq: 2
+}
+
+delete {
+  url: http://127.0.0.1:8001/api/v1/statistics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

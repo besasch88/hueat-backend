@@ -44,4 +44,19 @@ func (r statisticsRouter) register(router *gin.RouterGroup) {
 			hueat_router.ReturnOk(ctx, &gin.H{"item": item})
 		})
 
+	router.DELETE(
+		"/statistics",
+		hueat_auth.AuthMiddleware([]string{hueat_auth.DELETE_STATISTICS}),
+		hueat_timeout.TimeoutMiddleware(time.Duration(1)*time.Second),
+		func(ctx *gin.Context) {
+			// Business Logic
+			err := r.service.deleteStatistics(ctx)
+			// Errors and output handler
+			if err != nil {
+				zap.L().Error("Something went wrong", zap.String("service", "statistics-router"), zap.Error(err))
+				hueat_router.ReturnGenericError(ctx)
+				return
+			}
+			hueat_router.ReturnNoContent(ctx)
+		})
 }

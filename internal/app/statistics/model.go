@@ -7,7 +7,8 @@ import (
 )
 
 type tableModel struct {
-	ID uuid.UUID `gorm:"primaryKey;column:id;type:varchar(36)"`
+	ID    uuid.UUID `gorm:"primaryKey;column:id;type:varchar(36)"`
+	Close *bool     `gorm:"column:close;type:boolean"`
 }
 
 func (m tableModel) TableName() string {

@@ -10,6 +10,7 @@ type statisticsRepositoryInterface interface {
 	getAverageTableDuration(tx *gorm.DB) (time.Duration, error)
 	getPaymentMethodsTakins(tx *gorm.DB) ([]paymentTakingsEntity, error)
 	getMenuItemStats(tx *gorm.DB) ([]menuItemStatEntity, error)
+	deleteStatistics(tx *gorm.DB) error
 }
 
 type statisticsRepository struct {
@@ -59,4 +60,8 @@ func (r statisticsRepository) getMenuItemStats(tx *gorm.DB) ([]menuItemStatEntit
 		entities = append(entities, entity)
 	}
 	return entities, nil
+}
+
+func (r statisticsRepository) deleteStatistics(tx *gorm.DB) error {
+	return tx.Model(&tableModel{}).Where("close IS TRUE").Delete(&tableModel{}).Error
 }

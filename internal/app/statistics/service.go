@@ -1,14 +1,15 @@
 package statistics
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hueat/backend/internal/pkg/hueat_err"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
-	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type statisticsServiceInterface interface {
 	getStatistics(ctx *gin.Context) (statisticsEntity, error)
+	deleteStatistics(ctx *gin.Context) error
 }
 
 type statisticsService struct {
@@ -43,4 +44,12 @@ func (s statisticsService) getStatistics(ctx *gin.Context) (statisticsEntity, er
 		PaymentsTakins:   paymentMethodsTakins,
 		MenuItemStats:    menuItemStats,
 	}, nil
+}
+
+func (s statisticsService) deleteStatistics(ctx *gin.Context) error {
+	err := s.repository.deleteStatistics(s.storage)
+	if err != nil {
+		return hueat_err.ErrGeneric
+	}
+	return nil
 }
