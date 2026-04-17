@@ -49,7 +49,7 @@ func getAuthenticatedUserFromJWTAuth(ctx *gin.Context) (AuthenticatedUser, error
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		// Ensure the signing method is correct
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return AuthenticatedUser{}, nil
+			return AuthenticatedUser{}, errUnexpectedSigningMethod
 		}
 		return []byte(authConfig.JwtSecret), nil
 	})
@@ -64,7 +64,7 @@ func getAuthenticatedUserFromJWTAuth(ctx *gin.Context) (AuthenticatedUser, error
 
 	// Extract permissions from claims
 	var permissions []string
-	if c, ok := claims["permissions"].([]interface{}); ok {
+	if c, ok := claims["permissions"].([]any); ok {
 		for _, v := range c {
 			if s, ok := v.(string); ok {
 				permissions = append(permissions, s)

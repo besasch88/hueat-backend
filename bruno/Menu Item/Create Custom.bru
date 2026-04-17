@@ -1,0 +1,34 @@
+meta {
+  name: Create Custom
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://127.0.0.1:8001/api/v1/menu/tables/{{firstTableId}}/categories/{{firstMenuCategoryId}}/items
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "DOPPIA POLENTA",
+    "titleDisplay": "DOPPIA POLENTA",
+    "price": 500,
+    "printerId": "{{firstPrinterId}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("firstMenuItemId", res.body?.item?.id);
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

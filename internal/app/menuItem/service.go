@@ -2,10 +2,12 @@ package menuItem
 
 import (
 	"math"
+	"slices"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hueat/backend/internal/pkg/hueat_auth"
 	"github.com/hueat/backend/internal/pkg/hueat_db"
 	"github.com/hueat/backend/internal/pkg/hueat_err"
 	"github.com/hueat/backend/internal/pkg/hueat_pubsub"
@@ -17,6 +19,7 @@ type menuItemServiceInterface interface {
 	listMenuItems(ctx *gin.Context, input listMenuItemsInputDto) ([]menuItemEntity, int64, error)
 	getMenuItemByID(ctx *gin.Context, input getMenuItemInputDto) (menuItemEntity, error)
 	createMenuItem(ctx *gin.Context, input createMenuItemInputDto) (menuItemEntity, error)
+	createCustomMenuItem(ctx *gin.Context, input createCustomMenuItemInputDto) (menuItemEntity, error)
 	updateMenuItem(ctx *gin.Context, input updateMenuItemInputDto) (menuItemEntity, error)
 	deleteMenuItem(ctx *gin.Context, input deleteMenuItemInputDto) (menuItemEntity, error)
 }
@@ -98,6 +101,7 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 		Price:            input.Price,
 		PrinterInsideID:  hueat_utils.GetOptionalUUIDFromString(input.PrinterInsideID),
 		PrinterOutsideID: hueat_utils.GetOptionalUUIDFromString(input.PrinterOutsideID),
+		TableID:          nil,
 		CreatedAt:        now,
 		UpdatedAt:        now,
 	}
@@ -132,6 +136,7 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 					Price:            newMenuItem.Price,
 					PrinterInsideID:  newMenuItem.PrinterInsideID,
 					PrinterOutsideID: newMenuItem.PrinterOutsideID,
+					TableID:          newMenuItem.TableID,
 					CreatedAt:        newMenuItem.CreatedAt,
 					UpdatedAt:        newMenuItem.UpdatedAt,
 				},
@@ -164,6 +169,151 @@ func (s menuItemService) createMenuItem(ctx *gin.Context, input createMenuItemIn
 						Price:            updatedEntity.Price,
 						PrinterInsideID:  updatedEntity.PrinterInsideID,
 						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						TableID:          updatedEntity.TableID,
+						CreatedAt:        updatedEntity.CreatedAt,
+						UpdatedAt:        updatedEntity.UpdatedAt,
+					},
+					EventChangedFields: []string{"Position", "UpdatedAt"},
+				},
+			}); err != nil {
+				return err
+			} else {
+				eventsToPublish = append(eventsToPublish, event)
+			}
+		}
+		return nil
+	})
+	if errTransaction != nil {
+		return menuItemEntity{}, errTransaction
+	} else {
+		s.pubSubAgent.PublishBulk(eventsToPublish)
+	}
+	return newMenuItem, nil
+}
+
+func (s menuItemService) createCustomMenuItem(ctx *gin.Context, input createCustomMenuItemInputDto) (menuItemEntity, error) {
+	var table tableEntity
+	tableID := uuid.MustParse(input.TableId)
+	requester := hueat_auth.GetAuthenticatedUserFromSession(ctx)
+	userID := hueat_utils.GetOptionalUUIDFromString(&requester.ID)
+	// Check if the user has a permission
+	if slices.Contains(requester.Permissions, hueat_auth.READ_OTHER_TABLES) {
+		userID = nil
+	}
+	// Check if the table exists for that user
+	table, err := s.repository.getTableByID(s.storage, userID, tableID)
+	if err != nil {
+		return menuItemEntity{}, hueat_err.ErrGeneric
+	} else if hueat_utils.IsEmpty(table) {
+		return menuItemEntity{}, errTableNotFound
+	}
+
+	// Check if the menu category exists
+	menuCategoryID := uuid.MustParse(input.MenuCategoryId)
+	if exists, err := s.repository.checkMenuCategoryExists(s.storage, menuCategoryID); err != nil {
+		return menuItemEntity{}, hueat_err.ErrGeneric
+	} else if !exists {
+		return menuItemEntity{}, errMenuCategoryNotFound
+	}
+
+	// Check if the printers exist
+	printerId := uuid.MustParse(input.PrinterID)
+	if exists, err := s.repository.checkPrinterExists(s.storage, printerId); err != nil {
+		return menuItemEntity{}, hueat_err.ErrGeneric
+	} else if !exists {
+		return menuItemEntity{}, errPrinterNotFound
+	}
+
+	now := time.Now()
+	maxValue := int64(math.MaxInt64)
+	var insidePrinterId *uuid.UUID = nil
+	var outsidePrinterId *uuid.UUID = nil
+	if *table.Inside {
+		insidePrinterId = &printerId
+	} else {
+		outsidePrinterId = &printerId
+	}
+	newMenuItem := menuItemEntity{
+		ID:               uuid.New(),
+		MenuCategoryID:   menuCategoryID,
+		Position:         maxValue,
+		Title:            input.Title,
+		TitleDisplay:     input.TitleDisplay,
+		Active:           hueat_utils.BoolPtr(true),
+		Inside:           table.Inside,
+		Outside:          hueat_utils.BoolPtr(!*table.Inside),
+		Price:            input.Price,
+		PrinterInsideID:  insidePrinterId,
+		PrinterOutsideID: outsidePrinterId,
+		TableID:          &table.ID,
+		CreatedAt:        now,
+		UpdatedAt:        now,
+	}
+	eventsToPublish := []hueat_pubsub.EventToPublish{}
+	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
+		var updatedEntities []menuItemEntity
+		if item, err := s.repository.getMenuItemByTitle(tx, input.Title, false); err != nil {
+			return hueat_err.ErrGeneric
+		} else if !hueat_utils.IsEmpty(item) {
+			return errMenuItemSameTitleAlreadyExists
+		} else if _, err = s.repository.saveMenuItem(tx, newMenuItem, hueat_db.Create); err != nil {
+			return hueat_err.ErrGeneric
+		} else if updatedEntities, err = s.repository.recalculateMenuItemsPosition(tx, menuCategoryID); err != nil {
+			return hueat_err.ErrGeneric
+		} else if newMenuItem, err = s.repository.getCustomMenuItemByID(tx, newMenuItem.ID, false); err != nil {
+			return hueat_err.ErrGeneric
+		}
+
+		if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuItemV1, hueat_pubsub.PubSubMessage{
+			Message: hueat_pubsub.PubSubEvent{
+				EventID:   uuid.New(),
+				EventTime: time.Now(),
+				EventType: hueat_pubsub.MenuItemCreatedEvent,
+				EventEntity: &hueat_pubsub.MenuItemEventEntity{
+					ID:               newMenuItem.ID,
+					Title:            newMenuItem.Title,
+					TitleDisplay:     newMenuItem.TitleDisplay,
+					Position:         newMenuItem.Position,
+					Active:           newMenuItem.Active,
+					Inside:           newMenuItem.Inside,
+					Outside:          newMenuItem.Outside,
+					Price:            newMenuItem.Price,
+					PrinterInsideID:  newMenuItem.PrinterInsideID,
+					PrinterOutsideID: newMenuItem.PrinterOutsideID,
+					TableID:          newMenuItem.TableID,
+					CreatedAt:        newMenuItem.CreatedAt,
+					UpdatedAt:        newMenuItem.UpdatedAt,
+				},
+				EventChangedFields: hueat_utils.DiffStructs(menuItemEntity{}, newMenuItem),
+			},
+		}); err != nil {
+			return err
+		} else {
+			eventsToPublish = append(eventsToPublish, event)
+		}
+		// For the list of updated entities in Position, send events
+		for _, updatedEntity := range updatedEntities {
+			if updatedEntity.ID == newMenuItem.ID {
+				continue
+			}
+			if event, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuItemV1, hueat_pubsub.PubSubMessage{
+				Message: hueat_pubsub.PubSubEvent{
+					EventID:   uuid.New(),
+					EventTime: time.Now(),
+					EventType: hueat_pubsub.MenuItemUpdatedEvent,
+					EventEntity: &hueat_pubsub.MenuItemEventEntity{
+						ID:               updatedEntity.ID,
+						MenuCategoryID:   updatedEntity.MenuCategoryID,
+						Title:            updatedEntity.Title,
+						TitleDisplay:     updatedEntity.TitleDisplay,
+						Position:         updatedEntity.Position,
+						Active:           updatedEntity.Active,
+						Inside:           updatedEntity.Inside,
+						Outside:          updatedEntity.Outside,
+						Price:            updatedEntity.Price,
+						PrinterInsideID:  updatedEntity.PrinterInsideID,
+						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						TableID:          updatedEntity.TableID,
 						CreatedAt:        updatedEntity.CreatedAt,
 						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
@@ -285,6 +435,7 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 					Price:            updatedMenuItem.Price,
 					PrinterInsideID:  updatedMenuItem.PrinterInsideID,
 					PrinterOutsideID: updatedMenuItem.PrinterOutsideID,
+					TableID:          updatedMenuItem.TableID,
 					CreatedAt:        updatedMenuItem.CreatedAt,
 					UpdatedAt:        updatedMenuItem.UpdatedAt,
 				},
@@ -317,6 +468,7 @@ func (s menuItemService) updateMenuItem(ctx *gin.Context, input updateMenuItemIn
 						Price:            updatedEntity.Price,
 						PrinterInsideID:  updatedEntity.PrinterInsideID,
 						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						TableID:          updatedEntity.TableID,
 						CreatedAt:        updatedEntity.CreatedAt,
 						UpdatedAt:        updatedEntity.UpdatedAt,
 					},
@@ -374,6 +526,7 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 					Price:            currentMenuItem.Price,
 					PrinterInsideID:  currentMenuItem.PrinterInsideID,
 					PrinterOutsideID: currentMenuItem.PrinterOutsideID,
+					TableID:          currentMenuItem.TableID,
 					CreatedAt:        currentMenuItem.CreatedAt,
 					UpdatedAt:        currentMenuItem.UpdatedAt,
 				},
@@ -403,6 +556,7 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 						Price:            updatedEntity.Price,
 						PrinterInsideID:  updatedEntity.PrinterInsideID,
 						PrinterOutsideID: updatedEntity.PrinterOutsideID,
+						TableID:          updatedEntity.TableID,
 						CreatedAt:        updatedEntity.CreatedAt,
 						UpdatedAt:        updatedEntity.UpdatedAt,
 					},

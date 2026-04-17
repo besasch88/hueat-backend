@@ -6,6 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
+type tableModel struct {
+	ID     uuid.UUID `gorm:"primaryKey;column:id;type:varchar(36)"`
+	UserID uuid.UUID `gorm:"column:user_id;type:varchar(36)"`
+	Close  *bool     `gorm:"column:close;type:boolean"`
+	Inside *bool     `gorm:"column:inside;type:boolean"`
+}
+
+func (m tableModel) TableName() string {
+	return "hueat_table"
+}
+
+func (m tableModel) toEntity() tableEntity {
+	return tableEntity(m)
+}
+
 type menuCategoryModel struct {
 	ID uuid.UUID `gorm:"primaryKey;column:id;type:varchar(36)"`
 }

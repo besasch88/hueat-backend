@@ -11,10 +11,12 @@ import (
 )
 
 type menuItemRepositoryInterface interface {
+	getTableByID(tx *gorm.DB, userID *uuid.UUID, tableID uuid.UUID) (tableEntity, error)
 	checkPrinterExists(tx *gorm.DB, printerID uuid.UUID) (bool, error)
 	checkMenuCategoryExists(tx *gorm.DB, menuCategoryID uuid.UUID) (bool, error)
 	listMenuItems(tx *gorm.DB, menuCategoryID uuid.UUID, forUpdate bool) ([]menuItemEntity, int64, error)
 	getMenuItemByID(tx *gorm.DB, menuItemID uuid.UUID, forUpdate bool) (menuItemEntity, error)
+	getCustomMenuItemByID(tx *gorm.DB, menuItemID uuid.UUID, forUpdate bool) (menuItemEntity, error)
 	getMenuItemByTitle(tx *gorm.DB, menuItemTitle string, forUpdate bool) (menuItemEntity, error)
 	saveMenuItem(tx *gorm.DB, menuItem menuItemEntity, operation hueat_db.SaveOperation) (menuItemEntity, error)
 	deleteMenuItem(tx *gorm.DB, menuItem menuItemEntity) (menuItemEntity, error)
@@ -29,6 +31,22 @@ func newMenuItemRepository(relevanceThresholdConfig float64) menuItemRepository 
 	return menuItemRepository{
 		relevanceThresholdConfig: relevanceThresholdConfig,
 	}
+}
+
+func (r menuItemRepository) getTableByID(tx *gorm.DB, userID *uuid.UUID, tableID uuid.UUID) (tableEntity, error) {
+	var model *tableModel
+	query := tx.Where("id = ?", tableID).Where("close IS FALSE")
+	if userID != nil {
+		query.Where("user_id = ?", userID)
+	}
+	result := query.Limit(1).Find(&model)
+	if result.Error != nil {
+		return tableEntity{}, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return tableEntity{}, nil
+	}
+	return model.toEntity(), nil
 }
 
 func (r menuItemRepository) checkPrinterExists(tx *gorm.DB, printerID uuid.UUID) (bool, error) {
@@ -85,6 +103,22 @@ func (r menuItemRepository) listMenuItems(tx *gorm.DB, menuCategoryID uuid.UUID,
 
 func (r menuItemRepository) getMenuItemByID(tx *gorm.DB, menuItemID uuid.UUID, forUpdate bool) (menuItemEntity, error) {
 	var model *menuItemModel
+	query := tx.Where("id = ?", menuItemID).Where("table_id IS NULL")
+	if forUpdate {
+		query.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	result := query.Limit(1).Find(&model)
+	if result.Error != nil {
+		return menuItemEntity{}, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return menuItemEntity{}, nil
+	}
+	return model.toEntity(), nil
+}
+
+func (r menuItemRepository) getCustomMenuItemByID(tx *gorm.DB, menuItemID uuid.UUID, forUpdate bool) (menuItemEntity, error) {
+	var model *menuItemModel
 	query := tx.Where("id = ?", menuItemID)
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
@@ -101,7 +135,7 @@ func (r menuItemRepository) getMenuItemByID(tx *gorm.DB, menuItemID uuid.UUID, f
 
 func (r menuItemRepository) getMenuItemByTitle(tx *gorm.DB, menuItemTitle string, forUpdate bool) (menuItemEntity, error) {
 	var model *menuItemModel
-	query := tx.Where("title = ?", menuItemTitle)
+	query := tx.Where("title = ?", menuItemTitle).Where("table_id IS NULL")
 	if forUpdate {
 		query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
