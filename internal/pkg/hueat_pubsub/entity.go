@@ -35,20 +35,22 @@ type MenuCategoryEventEntity struct {
 }
 
 type MenuItemEventEntity struct {
-	ID               uuid.UUID  `json:"id"`
-	MenuCategoryID   uuid.UUID  `json:"menuCategoryId"`
-	Title            string     `json:"title"`
-	TitleDisplay     string     `json:"titleDisplay"`
-	Position         int64      `json:"position"`
-	Active           *bool      `json:"active"`
-	Inside           *bool      `json:"inside"`
-	Outside          *bool      `json:"outside"`
-	Price            int64      `json:"price"`
-	PrinterInsideID  *uuid.UUID `json:"printerInsideId"`
-	PrinterOutsideID *uuid.UUID `json:"printerOutsideId"`
-	TableID          *uuid.UUID `json:"tableId"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	UpdatedAt        time.Time  `json:"updatedAt"`
+	ID                  uuid.UUID  `json:"id"`
+	MenuCategoryID      uuid.UUID  `json:"menuCategoryId"`
+	Title               string     `json:"title"`
+	TitleDisplay        string     `json:"titleDisplay"`
+	Position            int64      `json:"position"`
+	Active              *bool      `json:"active"`
+	Inside              *bool      `json:"inside"`
+	Outside             *bool      `json:"outside"`
+	Price               int64      `json:"price"`
+	PrinterInsideID     *uuid.UUID `json:"printerInsideId"`
+	PrinterOutsideID    *uuid.UUID `json:"printerOutsideId"`
+	MandatoryForInside  *bool      `json:"mandatoryForInside"`
+	MandatoryForOutside *bool      `json:"mandatoryForOutside"`
+	TableID             *uuid.UUID `json:"tableId"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	UpdatedAt           time.Time  `json:"updatedAt"`
 }
 
 type MenuOptionEventEntity struct {

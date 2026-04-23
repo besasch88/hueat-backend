@@ -66,16 +66,18 @@ func (r getMenuItemInputDto) validate() error {
 }
 
 type updateMenuItemInputDto struct {
-	ID               string  `uri:"menuItemId"`
-	Title            *string `json:"title"`
-	TitleDisplay     *string `json:"TitleDisplay"`
-	Position         *int64  `json:"position"`
-	Active           *bool   `json:"active"`
-	Inside           *bool   `json:"inside"`
-	Outside          *bool   `json:"outside"`
-	Price            *int64  `json:"price"`
-	PrinterInsideID  *string `json:"printerInsideId"`
-	PrinterOutsideID *string `json:"printerOutsideId"`
+	ID                  string  `uri:"menuItemId"`
+	Title               *string `json:"title"`
+	TitleDisplay        *string `json:"TitleDisplay"`
+	Position            *int64  `json:"position"`
+	Active              *bool   `json:"active"`
+	Inside              *bool   `json:"inside"`
+	Outside             *bool   `json:"outside"`
+	Price               *int64  `json:"price"`
+	PrinterInsideID     *string `json:"printerInsideId"`
+	PrinterOutsideID    *string `json:"printerOutsideId"`
+	MandatoryForInside  *bool   `json:"mandatoryForInside"`
+	MandatoryForOutside *bool   `json:"mandatoryForOutside"`
 }
 
 func (r updateMenuItemInputDto) validate() error {
@@ -90,6 +92,8 @@ func (r updateMenuItemInputDto) validate() error {
 		validation.Field(&r.Price, validation.Min(1), validation.Max(10000)),
 		validation.Field(&r.PrinterInsideID, is.UUID),
 		validation.Field(&r.PrinterOutsideID, is.UUID),
+		validation.Field(&r.MandatoryForInside, validation.In(true, false)),
+		validation.Field(&r.MandatoryForOutside, validation.In(true, false)),
 	)
 }
 
