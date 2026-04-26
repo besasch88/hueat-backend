@@ -105,6 +105,7 @@ func (s menuOptionService) createMenuOption(ctx *gin.Context, input createMenuOp
 				EventType: hueat_pubsub.MenuOptionCreatedEvent,
 				EventEntity: &hueat_pubsub.MenuOptionEventEntity{
 					ID:           newMenuOption.ID,
+					MenuItemID:   newMenuOption.MenuItemID,
 					Title:        newMenuOption.Title,
 					TitleDisplay: newMenuOption.TitleDisplay,
 					Position:     newMenuOption.Position,

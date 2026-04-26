@@ -22,6 +22,7 @@ type menuItemServiceInterface interface {
 	createCustomMenuItem(ctx *gin.Context, input createCustomMenuItemInputDto) (menuItemEntity, error)
 	updateMenuItem(ctx *gin.Context, input updateMenuItemInputDto) (menuItemEntity, error)
 	deleteMenuItem(ctx *gin.Context, input deleteMenuItemInputDto) (menuItemEntity, error)
+	resetMenuItemPriceFromEvent(event hueat_pubsub.MenuOptionEventEntity) error
 }
 
 type menuItemService struct {
@@ -602,4 +603,61 @@ func (s menuItemService) deleteMenuItem(ctx *gin.Context, input deleteMenuItemIn
 		s.pubSubAgent.PublishBulk(eventsToPublish)
 	}
 	return currentMenuItem, nil
+}
+
+func (s menuItemService) resetMenuItemPriceFromEvent(event hueat_pubsub.MenuOptionEventEntity) error {
+	now := time.Now()
+	eventsToPublish := []hueat_pubsub.EventToPublish{}
+	errTransaction := s.storage.Transaction(func(tx *gorm.DB) error {
+		currentMenuItem, err := s.repository.getMenuItemByID(tx, event.MenuItemID, true)
+		if err != nil {
+			return hueat_err.ErrGeneric
+		}
+		if hueat_utils.IsEmpty(currentMenuItem) || currentMenuItem.Price == 0 {
+			return nil
+		}
+		updatedMenuItem := currentMenuItem
+		updatedMenuItem.Price = 0
+		updatedMenuItem.UpdatedAt = now
+		if _, err = s.repository.saveMenuItem(tx, updatedMenuItem, hueat_db.Upsert); err != nil {
+			return hueat_err.ErrGeneric
+		}
+		if pubSubEvent, err := s.pubSubAgent.Persist(tx, hueat_pubsub.TopicMenuItemV1, hueat_pubsub.PubSubMessage{
+			Message: hueat_pubsub.PubSubEvent{
+				EventID:   uuid.New(),
+				EventTime: time.Now(),
+				EventType: hueat_pubsub.MenuItemUpdatedEvent,
+				EventEntity: &hueat_pubsub.MenuItemEventEntity{
+					ID:                  updatedMenuItem.ID,
+					MenuCategoryID:      updatedMenuItem.MenuCategoryID,
+					Title:               updatedMenuItem.Title,
+					TitleDisplay:        updatedMenuItem.TitleDisplay,
+					Position:            updatedMenuItem.Position,
+					Active:              updatedMenuItem.Active,
+					Inside:              updatedMenuItem.Inside,
+					Outside:             updatedMenuItem.Outside,
+					Price:               updatedMenuItem.Price,
+					PrinterInsideID:     updatedMenuItem.PrinterInsideID,
+					PrinterOutsideID:    updatedMenuItem.PrinterOutsideID,
+					MandatoryForInside:  updatedMenuItem.MandatoryForInside,
+					MandatoryForOutside: updatedMenuItem.MandatoryForOutside,
+					TableID:             updatedMenuItem.TableID,
+					CreatedAt:           updatedMenuItem.CreatedAt,
+					UpdatedAt:           updatedMenuItem.UpdatedAt,
+				},
+				EventChangedFields: hueat_utils.DiffStructs(currentMenuItem, updatedMenuItem),
+			},
+		}); err != nil {
+			return err
+		} else {
+			eventsToPublish = append(eventsToPublish, pubSubEvent)
+		}
+		return nil
+	})
+	if errTransaction != nil {
+		return errTransaction
+	} else {
+		s.pubSubAgent.PublishBulk(eventsToPublish)
+	}
+	return nil
 }
